@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GML Clínica & Farmácia</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col md:flex-row">
+
+    <aside class="w-full md:w-64 bg-slate-800 border-r border-slate-700 flex flex-col justify-between">
+        <div>
+            <div class="p-5 flex items-center gap-3 border-b border-slate-700">
+                <div class="bg-blue-600 p-2 rounded-lg text-white">
+                    <i class="fa-solid fa-hospital text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-none">GML Saúde</h1>
+                    <span class="text-xs text-blue-400 font-medium">Clínica & Farmácia</span>
+                </div>
+            </div>
+
+            <nav class="p-4 space-y-1">
+                <button id="navPacientes" onclick="mostrarSecao('pacientes')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-600/20 text-blue-400 font-medium transition">
+                    <i class="fa-solid fa-chart-pie"></i> Dashboard
+                </button>
+                <button id="navMedicamentos" onclick="mostrarSecao('medicamentos')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-700/50 text-slate-400 hover:text-slate-200 transition">
+                    <i class="fa-solid fa-pills"></i> Medicamentos
+                </button>
+                <button id="navFornecedores" onclick="mostrarSecao('fornecedores')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-700/50 text-slate-400 hover:text-slate-200 transition">
+                    <i class="fa-solid fa-truck-field"></i> Fornecedores
+                </button>
+                <button id="navLotes" onclick="mostrarSecao('lotes')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-700/50 text-slate-400 hover:text-slate-200 transition">
+                    <i class="fa-solid fa-boxes-stacked"></i> Lotes
+                </button>
+                <button id="navUtilizadores" onclick="mostrarSecao('utilizadores')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-700/50 text-slate-400 hover:text-slate-200 transition">
+                    <i class="fa-solid fa-users"></i> Utilizadores
+                </button>
+                <a href="/swagger" target="_blank" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-700/50 text-slate-400 hover:text-slate-200 transition">
+                    <i class="fa-solid fa-code"></i> API Swagger
+                </a>
+            </nav>
+        </div>
+
+        <div class="p-4 border-t border-slate-700 text-xs text-slate-400">
+            <span class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                TiDB Cloud Conectado
+            </span>
+        </div>
+    </aside>
+
+    <main class="flex-1 p-6 md:p-8 overflow-y-auto">
+
+        <div id="secao-pacientes">
+            <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                <div>
+                    <h2 class="text-2xl font-bold">Painel de Gestão</h2>
+                    <p class="text-slate-400 text-sm">Acompanhamento de Pacientes em Tempo Real</p>
+                </div>
+                <button onclick="abrirModalNovo()" class="bg-blue-600 hover:bg-blue-500 text-white font-medium px-5 py-2.5 rounded-xl flex items-center gap-2 shadow-lg shadow-blue-600/20 transition">
+                    <i class="fa-solid fa-plus"></i> Novo Paciente
+                </button>
+            </header>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+                <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700">
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-xs font-semibold text-slate-400 uppercase">Total Pacientes</span>
+                        <div class="bg-blue-500/10 text-blue-400 p-2.5 rounded-xl"><i class="fa-solid fa-users"></i></div>
+                    </div>
+                    <p id="kpi-pacientes" class="text-2xl font-bold">0</p>
+                </div>
+            </div>
+
+            <section class="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden">
+                <div class="p-5 border-b border-slate-700 flex justify-between items-center">
+                    <h3 class="font-bold text-lg">Pacientes Registados</h3>
+                    <button onclick="carregarPacientes()" class="text-sm text-blue-400 hover:text-blue-300 flex items-center gap-1">
+                        <i class="fa-solid fa-rotate"></i> Atualizar
+                    </button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-sm">
+                        <thead>
+                            <tr class="bg-slate-900/50 text-slate-400 border-b border-slate-700">
+                                <th class="p-4 font-semibold">ID</th>
+                                <th class="p-4 font-semibold">Nome Completo</th>
+                                <th class="p-4 font-semibold">Gênero</th>
+                                <th class="p-4 font-semibold">Telefone</th>
+                                <th class="p-4 font-semibold">E-mail</th>
+                                <th class="p-4 font-semibold text-right">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabela-pacientes" class="divide-y divide-slate-700">
+                            <tr>
+                                <td colspan="6" class="p-6 text-center text-slate-500">A carregar dados do TiDB...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+        <div id="secao-medicamentos" class="hidden">
+            <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                <div>
+                    <h2 class="text-2xl font-bold">Farmácia & Lotes</h2>
+                    <p class="text-slate-400 text-sm">Gestão de Medicamentos</p>
+                </div>
+                <button onclick="abrirModalNovoMedicamento()" class="bg-blue-600 hover:bg-blue-500 text-white font-medium px-5 py-2.5 rounded-xl flex items-center gap-2 shadow-lg shadow-blue-600/20 transition">
+                    <i class="fa-solid fa-plus"></i> Novo Medicamento
+                </button>
+            </header>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+                <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700">
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-xs font-semibold text-slate-400 uppercase">Total Medicamentos</span>
+                        <div class="bg-blue-500/10 text-blue-400 p-2.5 rounded-xl"><i class="fa-solid fa-pills"></i></div>
+                    </div>
+                    <p id="kpi-medicamentos" class="text-2xl font-bold">0</p>
+                </div>
+            </div>
+
+            <section class="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden">
+                <div class="p-5 border-b border-slate-700 flex justify-between items-center">
+                    <h3 class="font-bold text-lg">Medicamentos Cadastrados</h3>
+                    <button onclick="carregarMedicamentos()" class="text-sm text-blue-400 hover:text-blue-300 flex items-center gap-1">
+                        <i class="fa-solid fa-rotate"></i> Atualizar
+                    </button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-sm">
+                        <thead>
+                            <tr class="bg-slate-900/50 text-slate-400 border-b border-slate-700">
+                                <th class="p-4 font-semibold">ID</th>
+                                <th class="p-4 font-semibold">Nome Genérico</th>
+                                <th class="p-4 font-semibold">Nome Comercial</th>
+                                <th class="p-4 font-semibold">Categoria</th>
+                                <th class="p-4 font-semibold">Estado</th>
+                                <th class="p-4 font-semibold text-right">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabela-medicamentos" class="divide-y divide-slate-700">
+                            <tr>
+                                <td colspan="6" class="p-6 text-center text-slate-500">Clique em Atualizar para carregar.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+        <div id="secao-fornecedores" class="hidden">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold">Fornecedores</h2>
+                    <p class="text-slate-400 text-sm">Gestão de Fornecedores</p>
+                </div>
+                <button onclick="abrirModalNovoFornecedor()" class="bg-blue-600 hover:bg-blue-500 text-white font-medium px-5 py-2.5 rounded-xl flex items-center gap-2 transition">
+                    <i class="fa-solid fa-plus"></i> Novo Fornecedor
+                </button>
+            </div>
+            <div class="bg-slate-800 border border-slate-700 rounded-2xl overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead class="text-slate-400 text-xs uppercase"><tr>
+                        <th class="p-4">Nome</th><th class="p-4">NIF</th><th class="p-4">Telefone</th>
+                        <th class="p-4">Email</th><th class="p-4">Estado</th><th class="p-4">Ações</th>
+                    </tr></thead>
+                    <tbody id="tabela-fornecedores" class="divide-y divide-slate-700"></tbody>
+                </table>
+            </div>
+        </div>
+        <div id="secao-lotes" class="hidden">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold">Lotes</h2>
+                    <p class="text-slate-400 text-sm">Gestão de Lotes de Medicamentos</p>
+                </div>
+                <button onclick="abrirModalNovoLote()" class="bg-blue-600 hover:bg-blue-500 text-white font-medium px-5 py-2.5 rounded-xl flex items-center gap-2 transition">
+                    <i class="fa-solid fa-plus"></i> Novo Lote
+                </button>
+            </div>
+            <div class="bg-slate-800 border border-slate-700 rounded-2xl overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead class="text-slate-400 text-xs uppercase"><tr>
+                        <th class="p-4">Medicamento</th><th class="p-4">Lote</th><th class="p-4">Validade</th>
+                        <th class="p-4">Qtd Atual</th><th class="p-4">Preço Venda</th><th class="p-4">Fornecedor</th>
+                        <th class="p-4">Estado</th><th class="p-4">Ações</th>
+                    </tr></thead>
+                    <tbody id="tabela-lotes" class="divide-y divide-slate-700"></tbody>
+                </table>
+            </div>
+        </div>
+        <div id="secao-utilizadores" class="hidden">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold">Utilizadores</h2>
+                    <p class="text-slate-400 text-sm">Gestão de Utilizadores</p>
+                </div>
+                <button onclick="abrirModalNovoUtilizador()" class="bg-blue-600 hover:bg-blue-500 text-white font-medium px-5 py-2.5 rounded-xl flex items-center gap-2 transition">
+                    <i class="fa-solid fa-plus"></i> Novo Utilizador
+                </button>
+            </div>
+            <div class="bg-slate-800 border border-slate-700 rounded-2xl overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead class="text-slate-400 text-xs uppercase"><tr>
+                        <th class="p-4">Nome</th><th class="p-4">Email</th><th class="p-4">Telefone</th>
+                        <th class="p-4">Nº Registo</th><th class="p-4">Estado</th><th class="p-4">Último Login</th>
+                        <th class="p-4">Ações</th>
+                    </tr></thead>
+                    <tbody id="tabela-utilizadores" class="divide-y divide-slate-700"></tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <div id="modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50 overflow-y-auto">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-2xl p-6 my-8 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6 pb-4 border-b border-slate-700">
+                <h3 id="modalTitulo" class="font-bold text-xl text-blue-400">Cadastrar Paciente</h3>
+                <button onclick="fecharModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-2xl"></i></button>
+            </div>
+
+            <form id="formPaciente" onsubmit="salvarPaciente(event)" class="space-y-4">
+                <input type="hidden" id="pacienteId">
+
+                <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">1. Dados Pessoais</div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Nome Completo *</label>
+                        <input type="text" id="nomeCompleto" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Nome Social</label>
+                        <input type="text" id="nomeSocial" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Data de Nascimento</label>
+                        <input type="date" id="dataNascimento" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Gênero</label>
+                        <select id="genero" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500">
+                            <option value="">Selecione</option>
+                            <option value="MASCULINO">Masculino</option>
+                            <option value="FEMININO">Feminino</option>
+                            <option value="OUTRO">Outro</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Estado Civil</label>
+                        <select id="estadoCivil" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500">
+                            <option value="">Selecione</option>
+                            <option value="SOLTEIRO">Solteiro(a)</option>
+                            <option value="CASADO">Casado(a)</option>
+                            <option value="DIVORCIADO">Divorciado(a)</option>
+                            <option value="VIUVO">Viúvo(a)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Grupo Sanguíneo</label>
+                        <select id="grupoSanguineo" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500">
+                            <option value="">Selecione</option>
+                            <option value="A+">A+</option>
+                            <option value="A-">A-</option>
+                            <option value="B+">B+</option>
+                            <option value="B-">B-</option>
+                            <option value="AB+">AB+</option>
+                            <option value="AB-">AB-</option>
+                            <option value="O+">O+</option>
+                            <option value="O-">O-</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 pt-2 border-t border-slate-700/50">2. Filiação e Nacionalidade</div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Nome da Mãe</label>
+                        <input type="text" id="nomeMae" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Nome do Pai</label>
+                        <input type="text" id="nomePai" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Nacionalidade</label>
+                        <input type="text" id="nacionalidade" value="Angolana" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500">
+                    </div>
+                </div>
+
+                <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 pt-2 border-t border-slate-700/50">3. Contactos e Endereço</div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Telefone Principal</label>
+                        <input type="text" id="telefonePrincipal" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Telefone Secundário</label>
+                        <input type="text" id="telefoneSecundario" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">E-mail</label>
+                        <input type="email" id="email" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Província</label>
+                        <input type="text" id="provinciaResidencia" value="Luanda" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Município</label>
+                        <input type="text" id="municipioResidencia" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Endereço (Rua/Bairro)</label>
+                        <input type="text" id="enderecoLinha" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500">
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-slate-700 flex gap-3">
+                    <button type="button" onclick="fecharModal()" class="w-1/2 bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium py-2.5 rounded-xl transition">Cancelar</button>
+                    <button type="submit" id="btnSalvar" class="w-1/2 bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 rounded-xl shadow-lg shadow-blue-600/20 transition">Gravar Paciente</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modalMedicamento" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50 overflow-y-auto">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-xl p-6 my-8 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6 pb-4 border-b border-slate-700">
+                <h3 id="modalMedicamentoTitulo" class="font-bold text-xl text-blue-400">Cadastrar Medicamento</h3>
+                <button onclick="fecharModalMedicamento()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-2xl"></i></button>
+            </div>
+
+            <form id="formMedicamento" onsubmit="salvarMedicamento(event)" class="space-y-4">
+                <input type="hidden" id="medicamentoId">
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Nome Genérico *</label>
+                    <input type="text" id="medNomeGenerico" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Nome Comercial</label>
+                    <input type="text" id="medNomeComercial" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500">
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Categoria *</label>
+                        <select id="medCategoria" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500">
+                            <option value="">Selecione</option>
+                            <option value="ANALGESICO">Analgésico</option>
+                            <option value="ANTIBIOTICO">Antibiótico</option>
+                            <option value="ANTI_INFLAMATORIO">Anti-inflamatório</option>
+                            <option value="HIPERTENSIVO">Hipertensivo</option>
+                            <option value="DIABETES">Diabetes</option>
+                            <option value="OUTRO">Outro</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Forma Farmacêutica *</label>
+                        <input type="text" id="medFormaFarmaceutica" required placeholder="Comprimido, Xarope..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Concentração *</label>
+                        <input type="text" id="medConcentracao" required placeholder="500mg, 10ml..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Estoque Mínimo Alerta</label>
+                        <input type="number" step="0.01" id="medEstoqueMinimo" value="10" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500">
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 pt-1">
+                    <input type="checkbox" id="medSujeitoReceita" class="w-4 h-4 rounded bg-slate-900 border-slate-700">
+                    <label for="medSujeitoReceita" class="text-sm text-slate-300">Sujeito a Receita Especial</label>
+                </div>
+
+                <div class="pt-4 border-t border-slate-700 flex gap-3">
+                    <button type="button" onclick="fecharModalMedicamento()" class="w-1/2 bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium py-2.5 rounded-xl transition">Cancelar</button>
+                    <button type="submit" id="btnSalvarMedicamento" class="w-1/2 bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 rounded-xl shadow-lg shadow-blue-600/20 transition">Gravar Medicamento</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modalFornecedor" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50 overflow-y-auto">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-lg">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="modalFornecedorTitulo" class="font-bold text-xl text-blue-400">Cadastrar Fornecedor</h3>
+                <button onclick="fecharModalFornecedor()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-2xl"></i></button>
+            </div>
+            <form id="formFornecedor" onsubmit="salvarFornecedor(event)" class="space-y-4">
+                <input type="hidden" id="fornecedorId">
+                <input id="fNome" required placeholder="Nome / Razão Social" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5">
+                <input id="fNif" placeholder="NIF" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5">
+                <input id="fTelefone" placeholder="Telefone" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5">
+                <input id="fEmail" type="email" placeholder="Email" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5">
+                <input id="fEndereco" placeholder="Endereço" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5">
+                <select id="fEstado" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5">
+                    <option value="ATIVO">ATIVO</option>
+                    <option value="INATIVO">INATIVO</option>
+                </select>
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="fecharModalFornecedor()" class="w-1/2 bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium py-2.5 rounded-xl transition">Cancelar</button>
+                    <button type="submit" id="btnSalvarFornecedor" class="w-1/2 bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 rounded-xl transition">Gravar Fornecedor</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div id="modalLote" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50 overflow-y-auto">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-lg">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="modalLoteTitulo" class="font-bold text-xl text-blue-400">Cadastrar Lote</h3>
+                <button onclick="fecharModalLote()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-2xl"></i></button>
+            </div>
+            <form id="formLote" onsubmit="salvarLote(event)" class="space-y-4">
+                <input type="hidden" id="loteId">
+                <select id="lMedicamento" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5"></select>
+                <select id="lFornecedor" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5"></select>
+                <input id="lNumero" required placeholder="Número do Lote" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5">
+                <label class="text-xs text-slate-400">Data de Fabricação</label>
+                <input id="lFabricacao" type="date" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5">
+                <label class="text-xs text-slate-400">Data de Validade</label>
+                <input id="lValidade" type="date" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5">
+                <input id="lQuantidade" type="number" step="0.01" min="0" required placeholder="Quantidade Inicial" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5">
+                <input id="lCusto" type="number" step="0.01" min="0" required placeholder="Preço de Custo Unitário" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5">
+                <input id="lVenda" type="number" step="0.01" min="0" required placeholder="Preço de Venda Unitário" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5">
+                <select id="lEstado" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5">
+                    <option value="DISPONIVEL">DISPONIVEL</option>
+                    <option value="QUARENTENA">QUARENTENA</option>
+                    <option value="VENCIDO">VENCIDO</option>
+                    <option value="ESGOTADO">ESGOTADO</option>
+                </select>
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="fecharModalLote()" class="w-1/2 bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium py-2.5 rounded-xl transition">Cancelar</button>
+                    <button type="submit" class="w-1/2 bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 rounded-xl transition">Gravar Lote</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div id="modalUtilizador" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50 overflow-y-auto">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-lg">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="modalUtilizadorTitulo" class="font-bold text-xl text-blue-400">Cadastrar Utilizador</h3>
+                <button onclick="fecharModalUtilizador()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-2xl"></i></button>
+            </div>
+            <form id="formUtilizador" onsubmit="salvarUtilizador(event)" class="space-y-4">
+                <input type="hidden" id="utilizadorId">
+                <input id="uNome" required placeholder="Nome Completo" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5">
+                <input id="uEmail" type="email" required placeholder="Email" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5">
+                <input id="uSenha" type="password" placeholder="Senha (mínimo 6 caracteres)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5">
+                <input id="uTelefone" placeholder="Telefone" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5">
+                <input id="uRegisto" placeholder="Nº de Registo Profissional" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5">
+                <select id="uEstado" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5">
+                    <option value="PENDENTE">PENDENTE</option>
+                    <option value="ATIVO">ATIVO</option>
+                    <option value="INATIVO">INATIVO</option>
+                </select>
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="fecharModalUtilizador()" class="w-1/2 bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium py-2.5 rounded-xl transition">Cancelar</button>
+                    <button type="submit" class="w-1/2 bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 rounded-xl transition">Gravar Utilizador</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script>
+        const API_URL = '/api/pacientes';
+        const API_MEDICAMENTOS_URL = '/api/medicamentos';
+        let listaPacientesMemoria = [];
+        let listaMedicamentosMemoria = [];
+        let medicamentosCarregados = false;
+
+        function mostrarSecao(nome) {
+            document.getElementById('secao-pacientes').classList.toggle('hidden', nome !== 'pacientes');
+            document.getElementById('secao-medicamentos').classList.toggle('hidden', nome !== 'medicamentos');
+            document.getElementById('secao-fornecedores').classList.toggle('hidden', nome !== 'fornecedores');
+            document.getElementById('secao-lotes').classList.toggle('hidden', nome !== 'lotes');
+            document.getElementById('secao-utilizadores').classList.toggle('hidden', nome !== 'utilizadores');
+
+            const ativo = 'bg-blue-600/20 text-blue-400 font-medium';
+            const inativo = 'hover:bg-slate-700/50 text-slate-400 hover:text-slate-200';
+
+            document.getElementById('navPacientes').className = 'w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ' + (nome === 'pacientes' ? ativo : inativo);
+            document.getElementById('navMedicamentos').className = 'w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ' + (nome === 'medicamentos' ? ativo : inativo);
+            document.getElementById('navFornecedores').className = 'w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ' + (nome === 'fornecedores' ? ativo : inativo);
+            document.getElementById('navLotes').className = 'w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ' + (nome === 'lotes' ? ativo : inativo);
+            document.getElementById('navUtilizadores').className = 'w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ' + (nome === 'utilizadores' ? ativo : inativo);
+
+            if (nome === 'medicamentos' && !medicamentosCarregados) {
+                carregarMedicamentos();
+            }
+            if (nome === 'fornecedores') {
+                carregarFornecedores();
+            }
+            if (nome === 'lotes') {
+                carregarLotes();
+            }
+            if (nome === 'utilizadores') {
+                carregarUtilizadores();
+            }
+        }
+
+        async function carregarPacientes() {
+            const tbody = document.getElementById('tabela-pacientes');
+            try {
+                const res = await fetch(API_URL);
+                if (!res.ok) {
+                    const errData = await res.json().catch(() => ({}));
+                    throw new Error(errData.mensagem || `Erro HTTP ${res.status}`);
+                }
+                const pacientes = await res.json();
+                listaPacientesMemoria = pacientes;
+                document.getElementById('kpi-pacientes').innerText = pacientes.length;
+
+                if (!Array.isArray(pacientes) || pacientes.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-500">Nenhum paciente cadastrado até ao momento.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = pacientes.map(p => {
+                    const id = p.id || p.Id || 0;
+                    const nome = p.nomeCompleto || p.NomeCompleto || 'Sem Nome';
+                    const genero = p.genero || p.Genero || '-';
+                    const tel = p.telefonePrincipal || p.TelefonePrincipal || '-';
+                    const email = p.email || p.Email || '-';
+                    return `
+                        <tr class="hover:bg-slate-700/30 transition border-b border-slate-800">
+                            <td class="p-4 font-mono text-xs text-slate-400">#${id}</td>
+                            <td class="p-4 font-medium text-slate-100">${nome}</td>
+                            <td class="p-4 text-slate-300">${genero}</td>
+                            <td class="p-4 text-slate-300">${tel}</td>
+                            <td class="p-4 text-slate-300">${email}</td>
+                            <td class="p-4 text-right space-x-2">
+                                <button onclick="abrirModalEditar(${id})" class="px-3 py-1.5 bg-blue-600/20 text-blue-400 hover:bg-blue-600 hover:text-white rounded-lg transition text-xs font-semibold">
+                                    <i class="fa-solid fa-pen-to-square"></i> Ver / Editar
+                                </button>
+                                <button onclick="eliminarPaciente(${id}, '${nome.replace(/'/g, "\\'")}')" class="px-3 py-1.5 bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white rounded-lg transition text-xs font-semibold">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (err) {
+                console.error(err);
+                tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-red-400">Erro ao carregar dados: ${err.message}</td></tr>`;
+            }
+        }
+
+        function abrirModalNovo() {
+            document.getElementById('formPaciente').reset();
+            document.getElementById('pacienteId').value = '';
+            document.getElementById('modalTitulo').innerText = 'Cadastrar Novo Paciente';
+            document.getElementById('btnSalvar').innerText = 'Gravar Paciente';
+            document.getElementById('modal').classList.remove('hidden');
+        }
+
+        function abrirModalEditar(id) {
+            const p = listaPacientesMemoria.find(item => (item.id || item.Id) == id);
+            if (!p) return alert('Paciente não encontrado.');
+            document.getElementById('pacienteId').value = id;
+            document.getElementById('modalTitulo').innerText = `Ficha do Paciente #${id}`;
+            document.getElementById('btnSalvar').innerText = 'Atualizar Paciente';
+
+            document.getElementById('nomeCompleto').value = p.nomeCompleto || p.NomeCompleto || '';
+            document.getElementById('nomeSocial').value = p.nomeSocial || p.NomeSocial || '';
+            const dtNasc = p.dataNascimento || p.DataNascimento;
+            document.getElementById('dataNascimento').value = dtNasc ? dtNasc.substring(0, 10) : '';
+            document.getElementById('genero').value = (p.genero || p.Genero || '').toUpperCase();
+            document.getElementById('estadoCivil').value = (p.estadoCivil || p.EstadoCivil || '').toUpperCase();
+            document.getElementById('grupoSanguineo').value = p.grupoSanguineo || p.GrupoSanguineo || '';
+            document.getElementById('nomeMae').value = p.nomeMae || p.NomeMae || '';
+            document.getElementById('nomePai').value = p.nomePai || p.NomePai || '';
+            document.getElementById('nacionalidade').value = p.nacionalidade || p.Nacionalidade || 'Angolana';
+            document.getElementById('telefonePrincipal').value = p.telefonePrincipal || p.TelefonePrincipal || '';
+            document.getElementById('telefoneSecundario').value = p.telefoneSecundario || p.TelefoneSecundario || '';
+            document.getElementById('email').value = p.email || p.Email || '';
+            document.getElementById('provinciaResidencia').value = p.provinciaResidencia || p.ProvinciaResidencia || 'Luanda';
+            document.getElementById('municipioResidencia').value = p.municipioResidencia || p.MunicipioResidencia || '';
+            document.getElementById('enderecoLinha').value = p.enderecoLinha || p.EnderecoLinha || '';
+
+            document.getElementById('modal').classList.remove('hidden');
+        }
+
+        function fecharModal() {
+            document.getElementById('modal').classList.add('hidden');
+        }
+
+        async function salvarPaciente(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnSalvar');
+            btn.disabled = true;
+            btn.innerText = 'A guardar...';
+
+            const pacienteId = document.getElementById('pacienteId').value;
+            const isEdit = pacienteId !== '';
+
+            const dtNascVal = document.getElementById('dataNascimento').value;
+
+            const dados = {
+                nomeCompleto: document.getElementById('nomeCompleto').value,
+                nomeSocial: document.getElementById('nomeSocial').value,
+                dataNascimento: dtNascVal || null,
+                genero: document.getElementById('genero').value,
+                estadoCivil: document.getElementById('estadoCivil').value,
+                grupoSanguineo: document.getElementById('grupoSanguineo').value,
+                nomeMae: document.getElementById('nomeMae').value,
+                nomePai: document.getElementById('nomePai').value,
+                nacionalidade: document.getElementById('nacionalidade').value,
+                telefonePrincipal: document.getElementById('telefonePrincipal').value,
+                telefoneSecundario: document.getElementById('telefoneSecundario').value,
+                email: document.getElementById('email').value,
+                provinciaResidencia: document.getElementById('provinciaResidencia').value,
+                municipioResidencia: document.getElementById('municipioResidencia').value,
+                enderecoLinha: document.getElementById('enderecoLinha').value
+            };
+
+            try {
+                const url = isEdit ? `${API_URL}/${pacienteId}` : API_URL;
+                const method = isEdit ? 'PUT' : 'POST';
+
+                const res = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dados)
+                });
+
+                if (res.ok) {
+                    fecharModal();
+                    await carregarPacientes();
+                } else {
+                    const erro = await res.json();
+                    alert(erro.mensagem || 'Erro ao processar requisição.');
+                }
+            } catch (err) {
+                alert('Erro de conexão com o servidor.');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = isEdit ? 'Atualizar Paciente' : 'Gravar Paciente';
+            }
+        }
+
+        async function eliminarPaciente(id, nome) {
+            if (!confirm(`Tem a certeza que deseja eliminar o paciente "${nome}"?`)) return;
+
+            try {
+                const res = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    await carregarPacientes();
+                } else {
+                    const erro = await res.json();
+                    alert(erro.mensagem || 'Erro ao eliminar paciente.');
+                }
+            } catch (err) {
+                alert('Erro de conexão ao tentar eliminar paciente.');
+            }
+        }
+
+        async function carregarMedicamentos() {
+            const tbody = document.getElementById('tabela-medicamentos');
+            tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-500">A carregar dados do TiDB...</td></tr>`;
+            try {
+                const res = await fetch(API_MEDICAMENTOS_URL);
+                if (!res.ok) {
+                    const errData = await res.json().catch(() => ({}));
+                    throw new Error(errData.mensagem || `Erro HTTP ${res.status}`);
+                }
+                const medicamentos = await res.json();
+                listaMedicamentosMemoria = medicamentos;
+                medicamentosCarregados = true;
+                document.getElementById('kpi-medicamentos').innerText = medicamentos.length;
+
+                if (!Array.isArray(medicamentos) || medicamentos.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-500">Nenhum medicamento cadastrado até ao momento.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = medicamentos.map(m => {
+                    const id = m.id || m.Id || 0;
+                    const nomeGenerico = m.nomeGenerico || m.NomeGenerico || 'Sem Nome';
+                    const nomeComercial = m.nomeComercial || m.NomeComercial || '-';
+                    const categoria = m.categoria || m.Categoria || '-';
+                    const estado = m.estado || m.Estado || '-';
+                    return `
+                        <tr class="hover:bg-slate-700/30 transition border-b border-slate-800">
+                            <td class="p-4 font-mono text-xs text-slate-400">#${id}</td>
+                            <td class="p-4 font-medium text-slate-100">${nomeGenerico}</td>
+                            <td class="p-4 text-slate-300">${nomeComercial}</td>
+                            <td class="p-4 text-slate-300">${categoria}</td>
+                            <td class="p-4 text-slate-300">${estado}</td>
+                            <td class="p-4 text-right space-x-2">
+                                <button onclick="abrirModalEditarMedicamento(${id})" class="px-3 py-1.5 bg-blue-600/20 text-blue-400 hover:bg-blue-600 hover:text-white rounded-lg transition text-xs font-semibold">
+                                    <i class="fa-solid fa-pen-to-square"></i> Editar
+                                </button>
+                                <button onclick="eliminarMedicamento(${id}, '${nomeGenerico.replace(/'/g, "\\'")}')" class="px-3 py-1.5 bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white rounded-lg transition text-xs font-semibold">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (err) {
+                console.error(err);
+                tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-red-400">Erro ao carregar dados: ${err.message}</td></tr>`;
+            }
+        }
+
+        function abrirModalNovoMedicamento() {
+            document.getElementById('formMedicamento').reset();
+            document.getElementById('medicamentoId').value = '';
+            document.getElementById('medEstoqueMinimo').value = '10';
+            document.getElementById('modalMedicamentoTitulo').innerText = 'Cadastrar Medicamento';
+            document.getElementById('btnSalvarMedicamento').innerText = 'Gravar Medicamento';
+            document.getElementById('modalMedicamento').classList.remove('hidden');
+        }
+
+        function abrirModalEditarMedicamento(id) {
+            const m = listaMedicamentosMemoria.find(item => (item.id || item.Id) == id);
+            if (!m) return alert('Medicamento não encontrado.');
+            document.getElementById('medicamentoId').value = id;
+            document.getElementById('modalMedicamentoTitulo').innerText = `Editar Medicamento #${id}`;
+            document.getElementById('btnSalvarMedicamento').innerText = 'Atualizar Medicamento';
+
+            document.getElementById('medNomeGenerico').value = m.nomeGenerico || m.NomeGenerico || '';
+            document.getElementById('medNomeComercial').value = m.nomeComercial || m.NomeComercial || '';
+            document.getElementById('medCategoria').value = (m.categoria || m.Categoria || '').toUpperCase();
+            document.getElementById('medFormaFarmaceutica').value = m.formaFarmaceutica || m.FormaFarmaceutica || '';
+            document.getElementById('medConcentracao').value = m.concentracao || m.Concentracao || '';
+            document.getElementById('medEstoqueMinimo').value = m.estoqueMinimoAlerta ?? m.EstoqueMinimoAlerta ?? 10;
+            document.getElementById('medSujeitoReceita').checked = !!(m.sujeitoReceitaEspecial ?? m.SujeitoReceitaEspecial);
+
+            document.getElementById('modalMedicamento').classList.remove('hidden');
+        }
+
+        function fecharModalMedicamento() {
+            document.getElementById('modalMedicamento').classList.add('hidden');
+        }
+
+        async function salvarMedicamento(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnSalvarMedicamento');
+            btn.disabled = true;
+            btn.innerText = 'A guardar...';
+
+            const medicamentoId = document.getElementById('medicamentoId').value;
+            const isEdit = medicamentoId !== '';
+
+            const dados = {
+                nomeGenerico: document.getElementById('medNomeGenerico').value,
+                nomeComercial: document.getElementById('medNomeComercial').value,
+                categoria: document.getElementById('medCategoria').value,
+                formaFarmaceutica: document.getElementById('medFormaFarmaceutica').value,
+                concentracao: document.getElementById('medConcentracao').value,
+                estoqueMinimoAlerta: parseFloat(document.getElementById('medEstoqueMinimo').value) || 10,
+                sujeitoReceitaEspecial: document.getElementById('medSujeitoReceita').checked
+            };
+
+            try {
+                const url = isEdit ? `${API_MEDICAMENTOS_URL}/${medicamentoId}` : API_MEDICAMENTOS_URL;
+                const method = isEdit ? 'PUT' : 'POST';
+
+                const res = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dados)
+                });
+
+                if (res.ok) {
+                    fecharModalMedicamento();
+                    await carregarMedicamentos();
+                } else {
+                    const erro = await res.json();
+                    alert(erro.mensagem || 'Erro ao processar requisição.');
+                }
+            } catch (err) {
+                alert('Erro de conexão com o servidor.');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = isEdit ? 'Atualizar Medicamento' : 'Gravar Medicamento';
+            }
+        }
+
+        async function eliminarMedicamento(id, nome) {
+            if (!confirm(`Tem a certeza que deseja descontinuar o medicamento "${nome}"?`)) return;
+
+            try {
+                const res = await fetch(`${API_MEDICAMENTOS_URL}/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    await carregarMedicamentos();
+                } else {
+                    const erro = await res.json();
+                    alert(erro.mensagem || 'Erro ao eliminar medicamento.');
+                }
+            } catch (err) {
+                alert('Erro de conexão ao tentar eliminar medicamento.');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', carregarPacientes);
+        carregarPacientes();
+        let listaFornecedores = [];
+
+        async function carregarFornecedores() {
+            const tbody = document.getElementById('tabela-fornecedores');
+            try {
+                const res = await fetch('/api/fornecedores');
+                if (!res.ok) throw new Error('Erro ' + res.status);
+                listaFornecedores = await res.json();
+                if (listaFornecedores.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-slate-500">Nenhum fornecedor cadastrado.</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = listaFornecedores.map(f => `<tr>
+                    <td class="p-4">${f.nomeRazaoSocial}</td>
+                    <td class="p-4">${f.nif || ''}</td>
+                    <td class="p-4">${f.telefone || ''}</td>
+                    <td class="p-4">${f.email || ''}</td>
+                    <td class="p-4">${f.estado}</td>
+                    <td class="p-4">
+                        <button onclick="abrirModalEditarFornecedor(${f.id})" class="px-3 py-1.5 bg-blue-600/20 text-blue-400 rounded-lg text-xs font-semibold">Editar</button>
+                        <button onclick="desativarFornecedor(${f.id})" class="px-3 py-1.5 bg-rose-600/20 text-rose-400 rounded-lg text-xs font-semibold">Desativar</button>
+                    </td>
+                </tr>`).join('');
+            } catch (e) {
+                tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-rose-400">Erro: ' + e.message + '</td></tr>';
+            }
+        }
+
+        function abrirModalNovoFornecedor() {
+            document.getElementById('formFornecedor').reset();
+            document.getElementById('fornecedorId').value = '';
+            document.getElementById('modalFornecedorTitulo').innerText = 'Cadastrar Fornecedor';
+            document.getElementById('modalFornecedor').classList.remove('hidden');
+        }
+
+        function abrirModalEditarFornecedor(id) {
+            const f = listaFornecedores.find(x => x.id === id);
+            if (!f) return;
+            document.getElementById('fornecedorId').value = f.id;
+            document.getElementById('fNome').value = f.nomeRazaoSocial;
+            document.getElementById('fNif').value = f.nif || '';
+            document.getElementById('fTelefone').value = f.telefone || '';
+            document.getElementById('fEmail').value = f.email || '';
+            document.getElementById('fEndereco').value = f.endereco || '';
+            document.getElementById('fEstado').value = f.estado;
+            document.getElementById('modalFornecedorTitulo').innerText = 'Editar Fornecedor';
+            document.getElementById('modalFornecedor').classList.remove('hidden');
+        }
+
+        function fecharModalFornecedor() {
+            document.getElementById('modalFornecedor').classList.add('hidden');
+        }
+
+        async function salvarFornecedor(e) {
+            e.preventDefault();
+            const id = document.getElementById('fornecedorId').value;
+            const dados = {
+                nomeRazaoSocial: document.getElementById('fNome').value,
+                nif: document.getElementById('fNif').value || null,
+                telefone: document.getElementById('fTelefone').value || null,
+                email: document.getElementById('fEmail').value || null,
+                endereco: document.getElementById('fEndereco').value || null,
+                estado: document.getElementById('fEstado').value
+            };
+            const res = await fetch(id ? '/api/fornecedores/' + id : '/api/fornecedores', {
+                method: id ? 'PUT' : 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dados)
+            });
+            if (!res.ok) { alert('Erro ao gravar fornecedor'); return; }
+            fecharModalFornecedor();
+            carregarFornecedores();
+        }
+
+        async function desativarFornecedor(id) {
+            if (!confirm('Desativar este fornecedor?')) return;
+            await fetch('/api/fornecedores/' + id, { method: 'DELETE' });
+            carregarFornecedores();
+        }
+        let listaLotes = [];
+
+        async function carregarLotes() {
+            const tbody = document.getElementById('tabela-lotes');
+            try {
+                const res = await fetch('/api/lotesmedicamentos');
+                if (!res.ok) throw new Error('Erro ' + res.status);
+                listaLotes = await res.json();
+                if (listaLotes.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="8" class="p-6 text-center text-slate-500">Nenhum lote cadastrado.</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = listaLotes.map(l => `<tr>
+                    <td class="p-4">${l.medicamento}</td>
+                    <td class="p-4">${l.numeroLote}</td>
+                    <td class="p-4">${l.dataValidade}</td>
+                    <td class="p-4">${l.quantidadeAtual}</td>
+                    <td class="p-4">${l.precoVendaUnitario}</td>
+                    <td class="p-4">${l.fornecedor || ''}</td>
+                    <td class="p-4">${l.estadoLote}</td>
+                    <td class="p-4">
+                        <button onclick="abrirModalEditarLote(${l.id})" class="px-3 py-1.5 bg-blue-600/20 text-blue-400 rounded-lg text-xs font-semibold">Editar</button>
+                    </td>
+                </tr>`).join('');
+            } catch (e) {
+                tbody.innerHTML = '<tr><td colspan="8" class="p-6 text-center text-rose-400">Erro: ' + e.message + '</td></tr>';
+            }
+        }
+
+        async function preencherSelectsLote() {
+            const meds = await (await fetch('/api/medicamentos')).json();
+            const forns = await (await fetch('/api/fornecedores')).json();
+            document.getElementById('lMedicamento').innerHTML = meds.map(m => `<option value="${m.id}">${m.nomeGenerico}</option>`).join('');
+            document.getElementById('lFornecedor').innerHTML = '<option value="">Sem fornecedor</option>' + forns.map(f => `<option value="${f.id}">${f.nomeRazaoSocial}</option>`).join('');
+        }
+
+        async function abrirModalNovoLote() {
+            document.getElementById('formLote').reset();
+            document.getElementById('loteId').value = '';
+            document.getElementById('modalLoteTitulo').innerText = 'Cadastrar Lote';
+            await preencherSelectsLote();
+            document.getElementById('modalLote').classList.remove('hidden');
+        }
+
+        async function abrirModalEditarLote(id) {
+            const l = listaLotes.find(x => x.id === id);
+            if (!l) return;
+            await preencherSelectsLote();
+            document.getElementById('loteId').value = l.id;
+            document.getElementById('lMedicamento').value = l.medicamentoId;
+            document.getElementById('lFornecedor').value = l.fornecedorId || '';
+            document.getElementById('lNumero').value = l.numeroLote;
+            document.getElementById('lFabricacao').value = l.dataFabricacao || '';
+            document.getElementById('lValidade').value = l.dataValidade;
+            document.getElementById('lQuantidade').value = l.quantidadeInicial;
+            document.getElementById('lCusto').value = l.precoCustoUnitario;
+            document.getElementById('lVenda').value = l.precoVendaUnitario;
+            document.getElementById('lEstado').value = l.estadoLote;
+            document.getElementById('modalLoteTitulo').innerText = 'Editar Lote';
+            document.getElementById('modalLote').classList.remove('hidden');
+        }
+
+        function fecharModalLote() {
+            document.getElementById('modalLote').classList.add('hidden');
+        }
+
+        async function salvarLote(e) {
+            e.preventDefault();
+            const id = document.getElementById('loteId').value;
+            const forn = document.getElementById('lFornecedor').value;
+            const dados = {
+                medicamentoId: parseInt(document.getElementById('lMedicamento').value),
+                fornecedorId: forn ? parseInt(forn) : null,
+                numeroLote: document.getElementById('lNumero').value,
+                dataFabricacao: document.getElementById('lFabricacao').value || null,
+                dataValidade: document.getElementById('lValidade').value,
+                quantidadeInicial: parseFloat(document.getElementById('lQuantidade').value),
+                precoCustoUnitario: parseFloat(document.getElementById('lCusto').value),
+                precoVendaUnitario: parseFloat(document.getElementById('lVenda').value),
+                estadoLote: document.getElementById('lEstado').value
+            };
+            const res = await fetch(id ? '/api/lotesmedicamentos/' + id : '/api/lotesmedicamentos', {
+                method: id ? 'PUT' : 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dados)
+            });
+            if (!res.ok) { alert('Erro ao gravar lote'); return; }
+            fecharModalLote();
+            carregarLotes();
+        }
+        let listaUtilizadores = [];
+
+        async function carregarUtilizadores() {
+            const tbody = document.getElementById('tabela-utilizadores');
+            try {
+                const res = await fetch('/api/utilizadores');
+                if (!res.ok) throw new Error('Erro ' + res.status);
+                listaUtilizadores = await res.json();
+                if (listaUtilizadores.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" class="p-6 text-center text-slate-500">Nenhum utilizador cadastrado.</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = listaUtilizadores.map(u => `<tr>
+                    <td class="p-4">${u.nomeCompleto}</td>
+                    <td class="p-4">${u.email}</td>
+                    <td class="p-4">${u.telefone || ''}</td>
+                    <td class="p-4">${u.numeroRegistroProfissional || ''}</td>
+                    <td class="p-4">${u.estado}</td>
+                    <td class="p-4">${u.ultimoLogin || ''}</td>
+                    <td class="p-4">
+                        <button onclick="abrirModalEditarUtilizador(${u.id})" class="px-3 py-1.5 bg-blue-600/20 text-blue-400 rounded-lg text-xs font-semibold">Editar</button>
+                        <button onclick="eliminarUtilizador(${u.id})" class="px-3 py-1.5 bg-rose-600/20 text-rose-400 rounded-lg text-xs font-semibold">Eliminar</button>
+                    </td>
+                </tr>`).join('');
+            } catch (e) {
+                tbody.innerHTML = '<tr><td colspan="7" class="p-6 text-center text-rose-400">Erro: ' + e.message + '</td></tr>';
+            }
+        }
+
+        async function eliminarUtilizador(id) {
+            if (!confirm('Eliminar este utilizador?')) return;
+            await fetch('/api/utilizadores/' + id, { method: 'DELETE' });
+            carregarUtilizadores();
+        }
+
+        function abrirModalNovoUtilizador() {
+            document.getElementById('formUtilizador').reset();
+            document.getElementById('utilizadorId').value = '';
+            document.getElementById('uSenha').required = true;
+            document.getElementById('modalUtilizadorTitulo').innerText = 'Cadastrar Utilizador';
+            document.getElementById('modalUtilizador').classList.remove('hidden');
+        }
+
+        function abrirModalEditarUtilizador(id) {
+            const u = listaUtilizadores.find(x => x.id === id);
+            if (!u) return;
+            document.getElementById('utilizadorId').value = u.id;
+            document.getElementById('uNome').value = u.nomeCompleto;
+            document.getElementById('uEmail').value = u.email;
+            document.getElementById('uSenha').value = '';
+            document.getElementById('uSenha').required = false;
+            document.getElementById('uTelefone').value = u.telefone || '';
+            document.getElementById('uRegisto').value = u.numeroRegistroProfissional || '';
+            document.getElementById('uEstado').value = u.estado;
+            document.getElementById('modalUtilizadorTitulo').innerText = 'Editar Utilizador (senha em branco = não muda)';
+            document.getElementById('modalUtilizador').classList.remove('hidden');
+        }
+
+        function fecharModalUtilizador() {
+            document.getElementById('modalUtilizador').classList.add('hidden');
+        }
+
+        async function salvarUtilizador(e) {
+            e.preventDefault();
+            const id = document.getElementById('utilizadorId').value;
+            const dados = {
+                nomeCompleto: document.getElementById('uNome').value,
+                email: document.getElementById('uEmail').value,
+                senha: document.getElementById('uSenha').value || null,
+                telefone: document.getElementById('uTelefone').value || null,
+                numeroRegistroProfissional: document.getElementById('uRegisto').value || null,
+                estado: document.getElementById('uEstado').value
+            };
+            const res = await fetch(id ? '/api/utilizadores/' + id : '/api/utilizadores', {
+                method: id ? 'PUT' : 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dados)
+            });
+            if (!res.ok) {
+                let msg = 'Erro ao gravar utilizador';
+                try { msg = (await res.json()).erro || msg; } catch (x) {}
+                alert(msg);
+                return;
+            }
+            fecharModalUtilizador();
+            carregarUtilizadores();
+        }
+    </script>
+</body>
+</html>
