@@ -41,6 +41,9 @@
                 <button id="navUtilizadores" onclick="mostrarSecao('utilizadores')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-700/50 text-slate-400 hover:text-slate-200 transition">
                     <i class="fa-solid fa-users"></i> Utilizadores
                 </button>
+                <button id="navAgendamentos" onclick="mostrarSecao('agendamentos')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-700/50 text-slate-400 hover:text-slate-200 transition">
+                    <i class="fa-solid fa-calendar-check"></i> Agendamentos
+                </button>
                 <a href="/swagger" target="_blank" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-700/50 text-slate-400 hover:text-slate-200 transition">
                     <i class="fa-solid fa-code"></i> API Swagger
                 </a>
@@ -215,6 +218,26 @@
                         <th class="p-4">Ações</th>
                     </tr></thead>
                     <tbody id="tabela-utilizadores" class="divide-y divide-slate-700"></tbody>
+                </table>
+            </div>
+        </div>
+        <div id="secao-agendamentos" class="hidden">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold">Agendamentos</h2>
+                    <p class="text-slate-400 text-sm">Gestão de Agendamentos</p>
+                </div>
+                <button onclick="abrirModalNovoAgendamento()" class="bg-blue-600 hover:bg-blue-500 text-white font-medium px-5 py-2.5 rounded-xl flex items-center gap-2 transition">
+                    <i class="fa-solid fa-plus"></i> Novo Agendamento
+                </button>
+            </div>
+            <div class="bg-slate-800 border border-slate-700 rounded-2xl overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead class="text-slate-400 text-xs uppercase"><tr>
+                        <th class="p-4">Data/Hora</th><th class="p-4">Paciente</th><th class="p-4">Médico</th>
+                        <th class="p-4">Tipo</th><th class="p-4">Estado</th><th class="p-4">Ações</th>
+                    </tr></thead>
+                    <tbody id="tabela-agendamentos" class="divide-y divide-slate-700"></tbody>
                 </table>
             </div>
         </div>
@@ -471,6 +494,44 @@
             </form>
         </div>
     </div>
+    <div id="modalAgendamento" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50 overflow-y-auto">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-lg">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="modalAgendamentoTitulo" class="font-bold text-xl text-blue-400">Agendar Consulta</h3>
+                <button onclick="fecharModalAgendamento()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-2xl"></i></button>
+            </div>
+            <form id="formAgendamento" onsubmit="salvarAgendamento(event)" class="space-y-4">
+                <input type="hidden" id="agendamentoId">
+                <select id="aPaciente" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5"></select>
+                <select id="aMedico" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5"></select>
+                <label class="text-xs text-slate-400">Início</label>
+                <input id="aInicio" type="datetime-local" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5">
+                <label class="text-xs text-slate-400">Fim</label>
+                <input id="aFim" type="datetime-local" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5">
+                <select id="aTipo" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5">
+                    <option value="PRIMEIRA_CONSULTA">PRIMEIRA_CONSULTA</option>
+                    <option value="RECONSULTA">RECONSULTA</option>
+                    <option value="URGENCIA">URGENCIA</option>
+                    <option value="ROTINA">ROTINA</option>
+                </select>
+                <select id="aEstado" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5">
+                    <option value="AGENDADO">AGENDADO</option>
+                    <option value="CONFIRMADO">CONFIRMADO</option>
+                    <option value="EM_ESPERA">EM_ESPERA</option>
+                    <option value="EM_ATENDIMENTO">EM_ATENDIMENTO</option>
+                    <option value="CONCLUIDO">CONCLUIDO</option>
+                    <option value="CANCELADO">CANCELADO</option>
+                    <option value="FALTOU">FALTOU</option>
+                </select>
+                <input id="aMotivo" placeholder="Motivo do cancelamento (se aplicável)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5">
+                <textarea id="aObs" placeholder="Observações" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5"></textarea>
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="fecharModalAgendamento()" class="w-1/2 bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium py-2.5 rounded-xl transition">Cancelar</button>
+                    <button type="submit" class="w-1/2 bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 rounded-xl transition">Gravar Agendamento</button>
+                </div>
+            </form>
+        </div>
+    </div>
     <script>
         const API_URL = '/api/pacientes';
         const API_MEDICAMENTOS_URL = '/api/medicamentos';
@@ -484,6 +545,7 @@
             document.getElementById('secao-fornecedores').classList.toggle('hidden', nome !== 'fornecedores');
             document.getElementById('secao-lotes').classList.toggle('hidden', nome !== 'lotes');
             document.getElementById('secao-utilizadores').classList.toggle('hidden', nome !== 'utilizadores');
+            document.getElementById('secao-agendamentos').classList.toggle('hidden', nome !== 'agendamentos');
 
             const ativo = 'bg-blue-600/20 text-blue-400 font-medium';
             const inativo = 'hover:bg-slate-700/50 text-slate-400 hover:text-slate-200';
@@ -493,6 +555,7 @@
             document.getElementById('navFornecedores').className = 'w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ' + (nome === 'fornecedores' ? ativo : inativo);
             document.getElementById('navLotes').className = 'w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ' + (nome === 'lotes' ? ativo : inativo);
             document.getElementById('navUtilizadores').className = 'w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ' + (nome === 'utilizadores' ? ativo : inativo);
+            document.getElementById('navAgendamentos').className = 'w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ' + (nome === 'agendamentos' ? ativo : inativo);
 
             if (nome === 'medicamentos' && !medicamentosCarregados) {
                 carregarMedicamentos();
@@ -505,6 +568,9 @@
             }
             if (nome === 'utilizadores') {
                 carregarUtilizadores();
+            }
+            if (nome === 'agendamentos') {
+                carregarAgendamentos();
             }
         }
 
@@ -1061,6 +1127,105 @@
             }
             fecharModalUtilizador();
             carregarUtilizadores();
+        }
+        let listaAgendamentos = [];
+
+        async function carregarAgendamentos() {
+            const tbody = document.getElementById('tabela-agendamentos');
+            try {
+                const res = await fetch('/api/agendamentos');
+                if (!res.ok) throw new Error('Erro ' + res.status);
+                listaAgendamentos = await res.json();
+                if (listaAgendamentos.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-slate-500">Nenhum agendamento cadastrado.</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = listaAgendamentos.map(a => `<tr>
+                    <td class="p-4">${a.dataHoraInicio.replace('T', ' ')}</td>
+                    <td class="p-4">${a.paciente}</td>
+                    <td class="p-4">${a.medico || ''}</td>
+                    <td class="p-4">${a.tipoConsulta}</td>
+                    <td class="p-4">${a.estado}</td>
+                    <td class="p-4">
+                        <button onclick="abrirModalEditarAgendamento(${a.id})" class="px-3 py-1.5 bg-blue-600/20 text-blue-400 rounded-lg text-xs font-semibold">Editar</button>
+                        <button onclick="cancelarAgendamento(${a.id})" class="px-3 py-1.5 bg-rose-600/20 text-rose-400 rounded-lg text-xs font-semibold">Cancelar</button>
+                    </td>
+                </tr>`).join('');
+            } catch (e) {
+                tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-rose-400">Erro: ' + e.message + '</td></tr>';
+            }
+        }
+
+        async function cancelarAgendamento(id) {
+            const motivo = prompt('Motivo do cancelamento:');
+            if (motivo === null) return;
+            await fetch('/api/agendamentos/' + id + '?motivo=' + encodeURIComponent(motivo), { method: 'DELETE' });
+            carregarAgendamentos();
+        }
+
+        async function preencherSelectsAgendamento() {
+            const pacs = await (await fetch('/api/pacientes')).json();
+            const meds = await (await fetch('/api/utilizadores')).json();
+            document.getElementById('aPaciente').innerHTML = pacs.map(p => `<option value="${p.id}">${p.nomeCompleto || p.nome}</option>`).join('');
+            document.getElementById('aMedico').innerHTML = '<option value="">Sem médico</option>' + meds.map(m => `<option value="${m.id}">${m.nomeCompleto}</option>`).join('');
+        }
+
+        async function abrirModalNovoAgendamento() {
+            document.getElementById('formAgendamento').reset();
+            document.getElementById('agendamentoId').value = '';
+            document.getElementById('modalAgendamentoTitulo').innerText = 'Agendar Consulta';
+            await preencherSelectsAgendamento();
+            document.getElementById('modalAgendamento').classList.remove('hidden');
+        }
+
+        async function abrirModalEditarAgendamento(id) {
+            const a = listaAgendamentos.find(x => x.id === id);
+            if (!a) return;
+            await preencherSelectsAgendamento();
+            document.getElementById('agendamentoId').value = a.id;
+            document.getElementById('aPaciente').value = a.pacienteId;
+            document.getElementById('aMedico').value = a.medicoId || '';
+            document.getElementById('aInicio').value = a.dataHoraInicio;
+            document.getElementById('aFim').value = a.dataHoraFim;
+            document.getElementById('aTipo').value = a.tipoConsulta;
+            document.getElementById('aEstado').value = a.estado;
+            document.getElementById('aMotivo').value = a.motivoCancelamento || '';
+            document.getElementById('aObs').value = a.observacoes || '';
+            document.getElementById('modalAgendamentoTitulo').innerText = 'Editar Agendamento';
+            document.getElementById('modalAgendamento').classList.remove('hidden');
+        }
+
+        function fecharModalAgendamento() {
+            document.getElementById('modalAgendamento').classList.add('hidden');
+        }
+
+        async function salvarAgendamento(e) {
+            e.preventDefault();
+            const id = document.getElementById('agendamentoId').value;
+            const med = document.getElementById('aMedico').value;
+            const dados = {
+                pacienteId: parseInt(document.getElementById('aPaciente').value),
+                medicoId: med ? parseInt(med) : null,
+                dataHoraInicio: document.getElementById('aInicio').value,
+                dataHoraFim: document.getElementById('aFim').value,
+                tipoConsulta: document.getElementById('aTipo').value,
+                estado: document.getElementById('aEstado').value,
+                motivoCancelamento: document.getElementById('aMotivo').value || null,
+                observacoes: document.getElementById('aObs').value || null
+            };
+            const res = await fetch(id ? '/api/agendamentos/' + id : '/api/agendamentos', {
+                method: id ? 'PUT' : 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dados)
+            });
+            if (!res.ok) {
+                let msg = 'Erro ao gravar agendamento';
+                try { msg = (await res.json()).erro || msg; } catch (x) {}
+                alert(msg);
+                return;
+            }
+            fecharModalAgendamento();
+            carregarAgendamentos();
         }
     </script>
 </body>
