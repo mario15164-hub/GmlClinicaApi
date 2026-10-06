@@ -122,7 +122,8 @@ namespace GmlClinicaApi.Controllers
                     WHERE id=@id;";
                 Par(c1, "@e", etapa);
                 Par(c1, "@id", id);
-                await c1.ExecuteNonQueryAsync();
+                var linhas = await c1.ExecuteNonQueryAsync();
+                if (linhas == 0) return NotFound(new { erro = "Registro não encontrado." });
                 string? novo = etapa == "EM_CONSULTA" ? "EM_ATENDIMENTO" : etapa == "ATENDIDO" ? "CONCLUIDO" : null;
                 if (novo != null)
                 {
