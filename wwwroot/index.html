@@ -47,6 +47,9 @@
                 <button id="navFila" onclick="mostrarSecao('fila')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-700/50 text-slate-400 hover:text-slate-200 transition">
                     <i class="fa-solid fa-list-ol"></i> Fila
                 </button>
+                <button id="navTriagens" onclick="mostrarSecao('triagens')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-700/50 text-slate-400 hover:text-slate-200 transition">
+                    <i class="fa-solid fa-notes-medical"></i> Triagens
+                </button>
                 <a href="/swagger" target="_blank" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-700/50 text-slate-400 hover:text-slate-200 transition">
                     <i class="fa-solid fa-code"></i> API Swagger
                 </a>
@@ -261,6 +264,29 @@
                         <th class="p-4">Etapa</th><th class="p-4">Chegada</th><th class="p-4">Ações</th>
                     </tr></thead>
                     <tbody id="tabela-fila" class="divide-y divide-slate-700"></tbody>
+                </table>
+            </div>
+        </div>
+        <div id="secao-triagens" class="hidden">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold">Triagens</h2>
+                    <p class="text-slate-400 text-sm">Triagens de Enfermagem (últimas 24h)</p>
+                </div>
+                <button onclick="abrirModalTriagem()" class="bg-blue-600 hover:bg-blue-500 text-white font-medium px-5 py-2.5 rounded-xl flex items-center gap-2 transition">
+                    <i class="fa-solid fa-plus"></i> Nova Triagem
+                </button>
+            </div>
+            <div class="bg-slate-800 border border-slate-700 rounded-2xl overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead class="text-slate-400 text-xs uppercase"><tr>
+                        <th class="p-4">Paciente</th><th class="p-4">Enfermeiro</th><th class="p-4">Risco</th>
+                        <th class="p-4">PA</th><th class="p-4">FC</th><th class="p-4">FR</th><th class="p-4">Temp.</th>
+                        <th class="p-4">SpO2</th><th class="p-4">IMC</th><th class="p-4">Glicemia</th>
+                        <th class="p-4">Consciência</th><th class="p-4">Queixa</th><th class="p-4">Data</th>
+                        <th class="p-4">Ações</th>
+                    </tr></thead>
+                    <tbody id="tabela-triagens" class="divide-y divide-slate-700"></tbody>
                 </table>
             </div>
         </div>
@@ -576,6 +602,103 @@
             </form>
         </div>
     </div>
+    <div id="modalTriagem" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50 overflow-y-auto">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-2xl my-8 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="tituloTriagem" class="font-bold text-xl text-blue-400">Nova Triagem</h3>
+                <button onclick="fecharModalTriagem()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-2xl"></i></button>
+            </div>
+            <form id="formTriagem" onsubmit="salvarTriagem(event)" class="space-y-4">
+                <input type="hidden" id="tId">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Registro da Fila *</label>
+                        <select id="tFila" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500"></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Enfermeiro *</label>
+                        <select id="tEnfermeiro" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500"></select>
+                    </div>
+                </div>
+
+                <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider pt-2 border-t border-slate-700/50">Sinais Vitais</div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">PA Sistólica</label>
+                        <input type="number" id="tPaSis" min="0" max="300" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">PA Diastólica</label>
+                        <input type="number" id="tPaDia" min="0" max="300" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Freq. Cardíaca</label>
+                        <input type="number" id="tFc" min="0" max="300" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Freq. Respiratória</label>
+                        <input type="number" id="tFr" min="0" max="100" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Temperatura (°C)</label>
+                        <input type="number" id="tTemp" step="0.1" min="25" max="45" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">SpO2 (%)</label>
+                        <input type="number" id="tSpo2" min="0" max="100" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Glicemia Capilar</label>
+                        <input type="number" id="tGlicemia" min="0" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Peso (kg)</label>
+                        <input type="number" id="tPeso" step="0.01" min="1" max="500" onblur="calcularImc()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Altura (cm)</label>
+                        <input type="number" id="tAltura" step="1" min="50" max="250" onblur="calcularImc()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">IMC</label>
+                        <input type="text" id="tImc" readonly placeholder="Calculado" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-2 text-sm text-slate-400">
+                    </div>
+                </div>
+
+                <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider pt-2 border-t border-slate-700/50">Avaliação</div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Nível de Consciência</label>
+                        <select id="tConsciencia" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500">
+                            <option value="">Selecione</option>
+                            <option value="ALERTA">ALERTA</option>
+                            <option value="RESPONDE_A_VOZ">RESPONDE_A_VOZ</option>
+                            <option value="RESPONDE_A_DOR">RESPONDE_A_DOR</option>
+                            <option value="INCONSCIENTE">INCONSCIENTE</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Classificação de Risco *</label>
+                        <select id="tRisco" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500">
+                            <option value="VERMELHO_EMERGENCIA">VERMELHO_EMERGENCIA</option>
+                            <option value="LARANJA_MUITO_URGENTE">LARANJA_MUITO_URGENTE</option>
+                            <option value="AMARELO_URGENTE">AMARELO_URGENTE</option>
+                            <option value="VERDE_POUCO_URGENTE">VERDE_POUCO_URGENTE</option>
+                            <option value="AZUL_NAO_URGENTE" selected>AZUL_NAO_URGENTE</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Queixa Principal</label>
+                    <textarea id="tQueixa" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500"></textarea>
+                </div>
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="fecharModalTriagem()" class="w-1/2 bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium py-2.5 rounded-xl transition">Cancelar</button>
+                    <button type="submit" class="w-1/2 bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 rounded-xl transition">Gravar Triagem</button>
+                </div>
+            </form>
+        </div>
+    </div>
     <script>
         const API_URL = '/api/pacientes';
         const API_MEDICAMENTOS_URL = '/api/medicamentos';
@@ -591,7 +714,9 @@
             document.getElementById('secao-utilizadores').classList.toggle('hidden', nome !== 'utilizadores');
             document.getElementById('secao-agendamentos').classList.toggle('hidden', nome !== 'agendamentos');
             document.getElementById('secao-fila').classList.toggle('hidden', nome !== 'fila');
+            document.getElementById('secao-triagens').classList.toggle('hidden', nome !== 'triagens');
             if (nome === 'fila') { carregarFila(); }
+            if (nome === 'triagens') { carregarTriagens(); }
 
             const ativo = 'bg-blue-600/20 text-blue-400 font-medium';
             const inativo = 'hover:bg-slate-700/50 text-slate-400 hover:text-slate-200';
@@ -603,6 +728,7 @@
             document.getElementById('navUtilizadores').className = 'w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ' + (nome === 'utilizadores' ? ativo : inativo);
             document.getElementById('navAgendamentos').className = 'w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ' + (nome === 'agendamentos' ? ativo : inativo);
             document.getElementById('navFila').className = 'w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ' + (nome === 'fila' ? ativo : inativo);
+            document.getElementById('navTriagens').className = 'w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ' + (nome === 'triagens' ? ativo : inativo);
 
             if (nome === 'medicamentos' && !medicamentosCarregados) {
                 carregarMedicamentos();
@@ -1375,6 +1501,216 @@
             fecharModalChegada();
             alert('Senha: ' + r.codigoSenha);
             carregarFila();
+        }
+
+        let listaTriagens = [];
+        let filaParaTriagem = [];
+        let utilizadoresParaTriagem = [];
+        const RISCOS_BADGE = {
+            VERMELHO_EMERGENCIA: 'bg-rose-600/20 text-rose-400',
+            LARANJA_MUITO_URGENTE: 'bg-orange-600/20 text-orange-400',
+            AMARELO_URGENTE: 'bg-yellow-500/20 text-yellow-400',
+            VERDE_POUCO_URGENTE: 'bg-emerald-600/20 text-emerald-400',
+            AZUL_NAO_URGENTE: 'bg-sky-600/20 text-sky-400'
+        };
+
+        async function carregarTriagens() {
+            const tbody = document.getElementById('tabela-triagens');
+            try {
+                const res = await fetch('/api/triagens');
+                if (!res.ok) throw new Error('Erro ' + res.status);
+                listaTriagens = await res.json();
+                if (listaTriagens.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="14" class="p-6 text-center text-slate-500">Não há triagens registadas nas últimas 24h.</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = listaTriagens.map(t => {
+                    const badge = RISCOS_BADGE[t.classificacaoRisco] || 'bg-slate-600/30 text-slate-300';
+                    const pa = t.pressaoSistolica != null && t.pressaoDiastolica != null ? t.pressaoSistolica + '/' + t.pressaoDiastolica : '-';
+                    const queixa = t.queixaPrincipal || '-';
+                    return `<tr>
+                        <td class="p-4">${t.paciente || '-'}</td>
+                        <td class="p-4">${t.enfermeiro || '-'}</td>
+                        <td class="p-4"><span class="px-2 py-1 rounded-lg text-xs font-semibold ${badge}">${t.classificacaoRisco || '-'}</span></td>
+                        <td class="p-4">${pa}</td>
+                        <td class="p-4">${t.frequenciaCardiaca ?? '-'}</td>
+                        <td class="p-4">${t.frequenciaRespiratoria ?? '-'}</td>
+                        <td class="p-4">${t.temperatura ?? '-'}</td>
+                        <td class="p-4">${t.saturacaoOxigenio != null ? t.saturacaoOxigenio + '%' : '-'}</td>
+                        <td class="p-4">${t.imc ?? '-'}</td>
+                        <td class="p-4">${t.glicemiaCapilar ?? '-'}</td>
+                        <td class="p-4">${t.nivelConsciencia || '-'}</td>
+                        <td class="p-4 max-w-[220px] truncate" title="${queixa.replace(/"/g, '&quot;')}">${queixa}</td>
+                        <td class="p-4">${t.createdAt || '-'}</td>
+                        <td class="p-4"><button onclick="editarTriagem(${t.id})" class="px-3 py-1.5 bg-blue-600/20 text-blue-400 rounded-lg text-xs font-semibold">Editar</button></td>
+                    </tr>`;
+                }).join('');
+            } catch (e) {
+                tbody.innerHTML = '<tr><td colspan="14" class="p-6 text-center text-rose-400">Erro: ' + e.message + '</td></tr>';
+            }
+        }
+
+        async function carregarDadosTriagem() {
+            const [resF, resU] = await Promise.all([fetch('/api/filaatendimento'), fetch('/api/utilizadores')]);
+            if (!resF.ok || !resU.ok) throw new Error('Erro ao carregar dados da triagem');
+            const fila = await resF.json();
+            filaParaTriagem = fila.filter(f => f.etapaAtual === 'EM_TRIAGEM');
+            utilizadoresParaTriagem = await resU.json();
+            document.getElementById('tFila').innerHTML = filaParaTriagem.length
+                ? filaParaTriagem.map(f => `<option value="${f.id}">${f.codigoSenha} - ${f.paciente}</option>`).join('')
+                : '<option value="">Nenhum registro em triagem</option>';
+            document.getElementById('tEnfermeiro').innerHTML = utilizadoresParaTriagem.map(u => `<option value="${u.id}">${u.nomeCompleto}</option>`).join('');
+        }
+
+        function limparFormTriagem() {
+            document.getElementById('formTriagem').reset();
+            document.getElementById('tId').value = '';
+            document.getElementById('tImc').value = '';
+            document.getElementById('tFila').disabled = false;
+        }
+
+        async function abrirModalTriagem() {
+            limparFormTriagem();
+            document.getElementById('tituloTriagem').textContent = 'Nova Triagem';
+            try {
+                await carregarDadosTriagem();
+            } catch (e) {
+                alert(e.message);
+                return;
+            }
+            document.getElementById('modalTriagem').classList.remove('hidden');
+        }
+
+        function fecharModalTriagem() {
+            document.getElementById('modalTriagem').classList.add('hidden');
+        }
+
+        function calcularImc() {
+            const peso = parseFloat(document.getElementById('tPeso').value);
+            const altura = parseFloat(document.getElementById('tAltura').value);
+            document.getElementById('tImc').value = (peso > 0 && altura > 0) ? (peso / Math.pow(altura / 100, 2)).toFixed(1) : '';
+        }
+
+        async function editarTriagem(id) {
+            const t = listaTriagens.find(x => x.id === id);
+            if (!t) return;
+            limparFormTriagem();
+            document.getElementById('tituloTriagem').textContent = 'Editar Triagem';
+            try {
+                await carregarDadosTriagem();
+            } catch (e) {
+                alert(e.message);
+                return;
+            }
+            const selFila = document.getElementById('tFila');
+            if (![...selFila.options].some(o => o.value === String(t.filaId))) {
+                selFila.insertAdjacentHTML('beforeend', `<option value="${t.filaId}">Fila #${t.filaId}</option>`);
+            }
+            selFila.value = t.filaId;
+            selFila.disabled = true;
+            const selEnf = document.getElementById('tEnfermeiro');
+            if (t.enfermeiroId != null) {
+                if (![...selEnf.options].some(o => o.value === String(t.enfermeiroId))) {
+                    selEnf.insertAdjacentHTML('beforeend', `<option value="${t.enfermeiroId}">Enfermeiro #${t.enfermeiroId}</option>`);
+                }
+                selEnf.value = t.enfermeiroId;
+            }
+            const set = (campo, v) => { document.getElementById(campo).value = v ?? ''; };
+            set('tId', t.id);
+            set('tPaSis', t.pressaoSistolica);
+            set('tPaDia', t.pressaoDiastolica);
+            set('tFc', t.frequenciaCardiaca);
+            set('tFr', t.frequenciaRespiratoria);
+            set('tTemp', t.temperatura);
+            set('tSpo2', t.saturacaoOxigenio);
+            set('tGlicemia', t.glicemiaCapilar);
+            set('tPeso', t.peso);
+            set('tAltura', t.altura);
+            set('tImc', t.imc);
+            set('tConsciencia', t.nivelConsciencia);
+            set('tRisco', t.classificacaoRisco);
+            set('tQueixa', t.queixaPrincipal);
+            document.getElementById('modalTriagem').classList.remove('hidden');
+        }
+
+        const CAMPOS_SIGNOS = [
+            { id: 'tAltura', rotulo: 'Altura', unidade: 'cm', min: 50, max: 250, inteiro: true },
+            { id: 'tPeso', rotulo: 'Peso', unidade: 'kg', min: 1, max: 500 },
+            { id: 'tTemp', rotulo: 'Temperatura', unidade: '°C', min: 25, max: 45 },
+            { id: 'tSpo2', rotulo: 'SpO2', unidade: '%', min: 0, max: 100 }
+        ];
+
+        CAMPOS_SIGNOS.forEach(c => document.getElementById(c.id)
+            .addEventListener('input', e => { e.target.style.borderColor = ''; }));
+
+        function validarSignosTriagem() {
+            const erros = [];
+            let primeiro = null;
+            CAMPOS_SIGNOS.forEach(c => {
+                const el = document.getElementById(c.id);
+                el.style.borderColor = '';
+                const bruto = el.value.trim();
+                if (bruto === '') return;
+                const v = parseFloat(bruto);
+                let erro = null;
+                if (!Number.isFinite(v)) erro = `${c.rotulo}: valor inválido.`;
+                else if (c.inteiro && !Number.isInteger(v)) erro = `${c.rotulo}: deve ser um número inteiro entre ${c.min} e ${c.max} ${c.unidade}.`;
+                else if (v < c.min || v > c.max) erro = `${c.rotulo}: deve estar entre ${c.min} e ${c.max} ${c.unidade}.`;
+                if (erro) {
+                    erros.push(erro);
+                    el.style.borderColor = '#ef4444';
+                    if (!primeiro) primeiro = el;
+                }
+            });
+            if (erros.length) {
+                alert('Valores fora do intervalo permitido:\n\n' + erros.join('\n'));
+                if (primeiro) primeiro.focus();
+            }
+            return erros.length === 0;
+        }
+
+        async function salvarTriagem(e) {
+            e.preventDefault();
+            const id = document.getElementById('tId').value;
+            const filaSel = document.getElementById('tFila').value;
+            const filaId = filaSel ? parseInt(filaSel) : null;
+            const enfSel = document.getElementById('tEnfermeiro').value;
+            const enfermeiroId = enfSel ? parseInt(enfSel) : null;
+            if (!id && !filaId) { alert('Selecione o registro da fila.'); return; }
+            if (!enfermeiroId) { alert('Selecione o enfermeiro.'); return; }
+            if (!validarSignosTriagem()) return;
+            const num = v => { const x = parseFloat(v); return Number.isFinite(x) ? x : null; };
+            const int = v => { const x = parseInt(v); return Number.isFinite(x) ? x : null; };
+            const dados = {
+                filaId: filaId,
+                enfermeiroId: enfermeiroId,
+                pressaoSistolica: int(document.getElementById('tPaSis').value),
+                pressaoDiastolica: int(document.getElementById('tPaDia').value),
+                frequenciaCardiaca: int(document.getElementById('tFc').value),
+                frequenciaRespiratoria: int(document.getElementById('tFr').value),
+                temperatura: num(document.getElementById('tTemp').value),
+                saturacaoOxigenio: int(document.getElementById('tSpo2').value),
+                peso: num(document.getElementById('tPeso').value),
+                altura: num(document.getElementById('tAltura').value),
+                glicemiaCapilar: int(document.getElementById('tGlicemia').value),
+                nivelConsciencia: document.getElementById('tConsciencia').value || null,
+                classificacaoRisco: document.getElementById('tRisco').value,
+                queixaPrincipal: document.getElementById('tQueixa').value || null
+            };
+            const res = await fetch(id ? '/api/triagens/' + id : '/api/triagens', {
+                method: id ? 'PUT' : 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dados)
+            });
+            if (!res.ok) {
+                let msg = id ? 'Erro ao editar triagem' : 'Erro ao registar triagem';
+                try { msg = (await res.json()).erro || msg; } catch (x) {}
+                alert(msg);
+                return;
+            }
+            fecharModalTriagem();
+            carregarTriagens();
+            if (!id) carregarFila();
         }
     </script>
 </body>
