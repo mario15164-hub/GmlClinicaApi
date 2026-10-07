@@ -50,6 +50,9 @@
                 <button id="navTriagens" onclick="mostrarSecao('triagens')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-700/50 text-slate-400 hover:text-slate-200 transition">
                     <i class="fa-solid fa-notes-medical"></i> Triagens
                 </button>
+                <button id="navConsultas" onclick="mostrarSecao('consultas')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-700/50 text-slate-400 hover:text-slate-200 transition">
+                    <i class="fa-solid fa-stethoscope"></i> Consultas
+                </button>
                 <a href="/swagger" target="_blank" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-700/50 text-slate-400 hover:text-slate-200 transition">
                     <i class="fa-solid fa-code"></i> API Swagger
                 </a>
@@ -287,6 +290,27 @@
                         <th class="p-4">Ações</th>
                     </tr></thead>
                     <tbody id="tabela-triagens" class="divide-y divide-slate-700"></tbody>
+                </table>
+            </div>
+        </div>
+        <div id="secao-consultas" class="hidden">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold">Consultas</h2>
+                    <p class="text-slate-400 text-sm">Consultas Médicas (últimas 24h)</p>
+                </div>
+                <button onclick="abrirModalConsulta()" class="bg-blue-600 hover:bg-blue-500 text-white font-medium px-5 py-2.5 rounded-xl flex items-center gap-2 transition">
+                    <i class="fa-solid fa-plus"></i> Nova Consulta
+                </button>
+            </div>
+            <div class="bg-slate-800 border border-slate-700 rounded-2xl overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead class="text-slate-400 text-xs uppercase"><tr>
+                        <th class="p-4">Paciente</th><th class="p-4">Médico</th>
+                        <th class="p-4">Início</th><th class="p-4">Fim</th>
+                        <th class="p-4">Estado</th><th class="p-4">Ações</th>
+                    </tr></thead>
+                    <tbody id="tabela-consultas" class="divide-y divide-slate-700"></tbody>
                 </table>
             </div>
         </div>
@@ -699,6 +723,61 @@
             </form>
         </div>
     </div>
+    <div id="modalConsulta" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50 overflow-y-auto">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-2xl my-8 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="tituloConsulta" class="font-bold text-xl text-blue-400">Nova Consulta</h3>
+                <button onclick="fecharModalConsulta()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-2xl"></i></button>
+            </div>
+            <form id="formConsulta" onsubmit="salvarConsulta(event)" class="space-y-4">
+                <input type="hidden" id="cId">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Origem (Fila EM_CONSULTA) *</label>
+                        <select id="cFila" onchange="aoEscolherConsultaFila()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500"></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Médico *</label>
+                        <select id="cMedico" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500"></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Paciente *</label>
+                        <select id="cPaciente" disabled class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-300 focus:outline-none"></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Agendamento</label>
+                        <select id="cAgendamento" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500"></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Triagem</label>
+                        <select id="cTriagem" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500"></select>
+                    </div>
+                </div>
+
+                <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider pt-2 border-t border-slate-700/50">Registo Clínico</div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Anamnese / História *</label>
+                    <textarea id="cAnamnese" rows="4" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500"></textarea>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Exame Físico</label>
+                    <textarea id="cExame" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500"></textarea>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Hipótese Diagnóstica</label>
+                    <textarea id="cHipotese" rows="2" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500"></textarea>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Conduta / Plano</label>
+                    <textarea id="cConduta" rows="2" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500"></textarea>
+                </div>
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="fecharModalConsulta()" class="w-1/2 bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium py-2.5 rounded-xl transition">Cancelar</button>
+                    <button type="submit" class="w-1/2 bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 rounded-xl transition">Gravar Consulta</button>
+                </div>
+            </form>
+        </div>
+    </div>
     <script>
         const API_URL = '/api/pacientes';
         const API_MEDICAMENTOS_URL = '/api/medicamentos';
@@ -715,8 +794,10 @@
             document.getElementById('secao-agendamentos').classList.toggle('hidden', nome !== 'agendamentos');
             document.getElementById('secao-fila').classList.toggle('hidden', nome !== 'fila');
             document.getElementById('secao-triagens').classList.toggle('hidden', nome !== 'triagens');
+            document.getElementById('secao-consultas').classList.toggle('hidden', nome !== 'consultas');
             if (nome === 'fila') { carregarFila(); }
             if (nome === 'triagens') { carregarTriagens(); }
+            if (nome === 'consultas') { carregarConsultas(); }
 
             const ativo = 'bg-blue-600/20 text-blue-400 font-medium';
             const inativo = 'hover:bg-slate-700/50 text-slate-400 hover:text-slate-200';
@@ -729,6 +810,7 @@
             document.getElementById('navAgendamentos').className = 'w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ' + (nome === 'agendamentos' ? ativo : inativo);
             document.getElementById('navFila').className = 'w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ' + (nome === 'fila' ? ativo : inativo);
             document.getElementById('navTriagens').className = 'w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ' + (nome === 'triagens' ? ativo : inativo);
+            document.getElementById('navConsultas').className = 'w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ' + (nome === 'consultas' ? ativo : inativo);
 
             if (nome === 'medicamentos' && !medicamentosCarregados) {
                 carregarMedicamentos();
@@ -1711,6 +1793,188 @@
             fecharModalTriagem();
             carregarTriagens();
             if (!id) carregarFila();
+        }
+
+        let listaConsultas = [];
+        let filaParaConsulta = [];
+        let triagensParaConsulta = [];
+        const ESTADO_CONSULTA_BADGE = {
+            EM_ANDAMENTO: 'bg-sky-600/20 text-sky-400',
+            CONCLUIDO: 'bg-emerald-600/20 text-emerald-400',
+            CANCELADO: 'bg-rose-600/20 text-rose-400'
+        };
+
+        async function carregarConsultas() {
+            const tbody = document.getElementById('tabela-consultas');
+            try {
+                const res = await fetch('/api/consultas');
+                if (!res.ok) throw new Error('Erro ' + res.status);
+                listaConsultas = await res.json();
+                if (listaConsultas.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-slate-500">Não há consultas registadas nas últimas 24h.</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = listaConsultas.map(c => {
+                    const badge = ESTADO_CONSULTA_BADGE[c.estado] || 'bg-slate-600/30 text-slate-300';
+                    const botoes = c.estado === 'EM_ANDAMENTO'
+                        ? `<button onclick="editarConsulta(${c.id})" class="px-3 py-1.5 bg-blue-600/20 text-blue-400 rounded-lg text-xs font-semibold">Editar</button>
+                           <button onclick="mudarEstadoConsulta(${c.id}, 'CONCLUIDO')" class="px-3 py-1.5 bg-emerald-600/20 text-emerald-400 rounded-lg text-xs font-semibold">Concluir</button>
+                           <button onclick="mudarEstadoConsulta(${c.id}, 'CANCELADO')" class="px-3 py-1.5 bg-rose-600/20 text-rose-400 rounded-lg text-xs font-semibold">Cancelar</button>`
+                        : `<button onclick="editarConsulta(${c.id})" class="px-3 py-1.5 bg-blue-600/20 text-blue-400 rounded-lg text-xs font-semibold">Editar</button>`;
+                    return `<tr>
+                        <td class="p-4">${c.paciente || '-'}</td>
+                        <td class="p-4">${c.medico || '-'}</td>
+                        <td class="p-4">${c.dataInicio || '-'}</td>
+                        <td class="p-4">${c.dataFim || '-'}</td>
+                        <td class="p-4"><span class="px-2 py-1 rounded-lg text-xs font-semibold ${badge}">${c.estado || '-'}</span></td>
+                        <td class="p-4">${botoes}</td>
+                    </tr>`;
+                }).join('');
+            } catch (e) {
+                tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-rose-400">Erro: ' + e.message + '</td></tr>';
+            }
+        }
+
+        async function carregarDadosConsulta() {
+            const [resF, resT, resU, resP, resA] = await Promise.all([
+                fetch('/api/filaatendimento'), fetch('/api/triagens'), fetch('/api/utilizadores'),
+                fetch('/api/pacientes'), fetch('/api/agendamentos')
+            ]);
+            if (!resF.ok || !resT.ok || !resU.ok || !resP.ok || !resA.ok)
+                throw new Error('Erro ao carregar dados da consulta');
+            const fila = await resF.json();
+            filaParaConsulta = fila.filter(f => f.etapaAtual === 'EM_CONSULTA');
+            triagensParaConsulta = await resT.json();
+            const utilizadores = await resU.json();
+            const pacientes = await resP.json();
+            const agendamentos = await resA.json();
+            document.getElementById('cFila').innerHTML = filaParaConsulta.length
+                ? '<option value="">Selecione o registro da fila</option>' + filaParaConsulta.map(f => `<option value="${f.id}">${f.codigoSenha} - ${f.paciente}</option>`).join('')
+                : '<option value="">Nenhum registro em consulta</option>';
+            document.getElementById('cPaciente').innerHTML = pacientes.map(p => `<option value="${p.id}">${p.nomeCompleto || p.nome}</option>`).join('');
+            document.getElementById('cMedico').innerHTML = utilizadores.map(u => `<option value="${u.id}">${u.nomeCompleto}</option>`).join('');
+            document.getElementById('cAgendamento').innerHTML = '<option value="">Sem agendamento</option>' + agendamentos.map(a => `<option value="${a.id}" data-medico="${a.medicoId ?? ''}">${a.dataHoraInicio.replace('T', ' ')} - ${a.paciente}</option>`).join('');
+            document.getElementById('cTriagem').innerHTML = '<option value="">Sem triagem</option>' + triagensParaConsulta.map(t => `<option value="${t.id}" data-fila="${t.filaId}">${t.paciente || 'Paciente #' + t.pacienteId}</option>`).join('');
+        }
+
+        function aoEscolherConsultaFila() {
+            const id = document.getElementById('cFila').value;
+            const f = filaParaConsulta.find(x => String(x.id) === id);
+            const selAg = document.getElementById('cAgendamento');
+            const selTri = document.getElementById('cTriagem');
+            if (!f) return;
+            document.getElementById('cPaciente').value = f.pacienteId;
+            selAg.value = f.agendamentoId ?? '';
+            const tri = triagensParaConsulta.find(t => String(t.filaId) === String(f.id));
+            selTri.value = tri ? String(tri.id) : '';
+            const agOpt = [...selAg.options].find(o => o.value === selAg.value);
+            const medicoAg = agOpt ? agOpt.dataset.medico : '';
+            if (medicoAg) document.getElementById('cMedico').value = medicoAg;
+        }
+
+        function limparFormConsulta() {
+            document.getElementById('formConsulta').reset();
+            document.getElementById('cId').value = '';
+            document.getElementById('cFila').disabled = false;
+        }
+
+        async function abrirModalConsulta() {
+            limparFormConsulta();
+            document.getElementById('tituloConsulta').textContent = 'Nova Consulta';
+            try {
+                await carregarDadosConsulta();
+            } catch (e) {
+                alert(e.message);
+                return;
+            }
+            document.getElementById('modalConsulta').classList.remove('hidden');
+        }
+
+        function fecharModalConsulta() {
+            document.getElementById('modalConsulta').classList.add('hidden');
+        }
+
+        async function editarConsulta(id) {
+            const c = listaConsultas.find(x => x.id === id);
+            if (!c) return;
+            limparFormConsulta();
+            document.getElementById('tituloConsulta').textContent = 'Editar Consulta';
+            try {
+                await carregarDadosConsulta();
+            } catch (e) {
+                alert(e.message);
+                return;
+            }
+            const selFila = document.getElementById('cFila');
+            selFila.value = '';
+            selFila.disabled = true;
+            document.getElementById('cPaciente').value = c.pacienteId;
+            document.getElementById('cMedico').value = c.medicoId;
+            const selAg = document.getElementById('cAgendamento');
+            if (c.agendamentoId != null && ![...selAg.options].some(o => o.value === String(c.agendamentoId))) {
+                selAg.insertAdjacentHTML('beforeend', `<option value="${c.agendamentoId}">Agendamento #${c.agendamentoId}</option>`);
+            }
+            selAg.value = c.agendamentoId ?? '';
+            const selTri = document.getElementById('cTriagem');
+            if (c.triagemId != null && ![...selTri.options].some(o => o.value === String(c.triagemId))) {
+                selTri.insertAdjacentHTML('beforeend', `<option value="${c.triagemId}">Triagem #${c.triagemId}</option>`);
+            }
+            selTri.value = c.triagemId ?? '';
+            document.getElementById('cId').value = c.id;
+            document.getElementById('cAnamnese').value = c.anamneseHistoria || '';
+            document.getElementById('cExame').value = c.exameFisico || '';
+            document.getElementById('cHipotese').value = c.hipoteseDiagnostica || '';
+            document.getElementById('cConduta').value = c.condutaPlano || '';
+            document.getElementById('modalConsulta').classList.remove('hidden');
+        }
+
+        async function salvarConsulta(e) {
+            e.preventDefault();
+            const id = document.getElementById('cId').value;
+            const pacienteId = parseInt(document.getElementById('cPaciente').value);
+            const medicoId = parseInt(document.getElementById('cMedico').value);
+            const anamnese = document.getElementById('cAnamnese').value.trim();
+            if (!pacienteId) { alert('Selecione o paciente.'); return; }
+            if (!medicoId) { alert('Selecione o médico.'); return; }
+            if (!anamnese) { alert('Informe a anamnese/história.'); return; }
+            const ag = document.getElementById('cAgendamento').value;
+            const tri = document.getElementById('cTriagem').value;
+            const dados = {
+                agendamentoId: ag ? parseInt(ag) : null,
+                triagemId: tri ? parseInt(tri) : null,
+                pacienteId: pacienteId,
+                medicoId: medicoId,
+                anamneseHistoria: anamnese,
+                exameFisico: document.getElementById('cExame').value || null,
+                hipoteseDiagnostica: document.getElementById('cHipotese').value || null,
+                condutaPlano: document.getElementById('cConduta').value || null
+            };
+            const res = await fetch(id ? '/api/consultas/' + id : '/api/consultas', {
+                method: id ? 'PUT' : 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dados)
+            });
+            if (!res.ok) {
+                let msg = id ? 'Erro ao editar consulta' : 'Erro ao registar consulta';
+                try { msg = (await res.json()).erro || msg; } catch (x) {}
+                alert(msg);
+                return;
+            }
+            fecharModalConsulta();
+            carregarConsultas();
+        }
+
+        async function mudarEstadoConsulta(id, estado) {
+            const rotulo = estado === 'CONCLUIDO' ? 'concluir' : 'cancelar';
+            if (!confirm('Deseja ' + rotulo + ' esta consulta?')) return;
+            const res = await fetch('/api/consultas/' + id + '/estado?estado=' + estado, { method: 'PUT' });
+            if (!res.ok) {
+                let msg = 'Erro ao ' + rotulo + ' consulta';
+                try { msg = (await res.json()).erro || msg; } catch (x) {}
+                alert(msg);
+                return;
+            }
+            carregarConsultas();
         }
     </script>
 </body>
