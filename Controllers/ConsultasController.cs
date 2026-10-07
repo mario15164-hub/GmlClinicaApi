@@ -36,7 +36,7 @@ namespace GmlClinicaApi.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Listar()
+        public async Task<IActionResult> Listar([FromQuery] bool todas = false)
         {
             try
             {
@@ -47,7 +47,7 @@ namespace GmlClinicaApi.Controllers
                     JOIN pacientes p ON p.id = c.paciente_id
                     LEFT JOIN utilizadores m ON m.id = c.medico_id
                     WHERE c.is_deleted = 0
-                    AND c.created_at >= NOW(3) - INTERVAL 1 DAY
+                    " + (todas ? "" : "AND c.created_at >= NOW(3) - INTERVAL 1 DAY") + @"
                     ORDER BY (c.estado = 'EM_ANDAMENTO'), c.data_inicio DESC;";
                 if (cmd.Connection!.State != ConnectionState.Open)
                     await cmd.Connection.OpenAsync();

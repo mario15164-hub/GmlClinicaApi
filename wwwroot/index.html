@@ -53,6 +53,9 @@
                 <button id="navConsultas" onclick="mostrarSecao('consultas')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-700/50 text-slate-400 hover:text-slate-200 transition">
                     <i class="fa-solid fa-stethoscope"></i> Consultas
                 </button>
+                <button id="navPrescricoes" onclick="mostrarSecao('prescricoes')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-700/50 text-slate-400 hover:text-slate-200 transition">
+                    <i class="fa-solid fa-file-medical"></i> Prescrições
+                </button>
                 <a href="/swagger" target="_blank" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-700/50 text-slate-400 hover:text-slate-200 transition">
                     <i class="fa-solid fa-code"></i> API Swagger
                 </a>
@@ -311,6 +314,28 @@
                         <th class="p-4">Estado</th><th class="p-4">Ações</th>
                     </tr></thead>
                     <tbody id="tabela-consultas" class="divide-y divide-slate-700"></tbody>
+                </table>
+            </div>
+        </div>
+        <div id="secao-prescricoes" class="hidden">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold">Prescrições</h2>
+                    <p class="text-slate-400 text-sm">Receitas médicas e itens prescritos</p>
+                </div>
+                <button onclick="abrirModalPrescricao()" class="bg-blue-600 hover:bg-blue-500 text-white font-medium px-5 py-2.5 rounded-xl flex items-center gap-2 transition">
+                    <i class="fa-solid fa-plus"></i> Nova Prescrição
+                </button>
+            </div>
+            <div class="bg-slate-800 border border-slate-700 rounded-2xl overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead class="text-slate-400 text-xs uppercase"><tr>
+                        <th class="p-4">Paciente</th><th class="p-4">Médico</th>
+                        <th class="p-4">Consulta</th><th class="p-4">Data</th>
+                        <th class="p-4">Validade</th><th class="p-4">Itens</th>
+                        <th class="p-4">Estado</th><th class="p-4">Ações</th>
+                    </tr></thead>
+                    <tbody id="tabela-prescricoes" class="divide-y divide-slate-700"></tbody>
                 </table>
             </div>
         </div>
@@ -778,6 +803,70 @@
             </form>
         </div>
     </div>
+    <div id="modalPrescricao" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50 overflow-y-auto">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-3xl my-8 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="tituloPrescricao" class="font-bold text-xl text-blue-400">Nova Prescrição</h3>
+                <button onclick="fecharModalPrescricao()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-2xl"></i></button>
+            </div>
+            <form id="formPrescricao" onsubmit="salvarPrescricao(event)" class="space-y-4">
+                <input type="hidden" id="pId">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Consulta *</label>
+                        <select id="pConsulta" onchange="aoEscolherConsultaPrescricao()" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500"></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Médico *</label>
+                        <select id="pMedico" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500"></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Paciente *</label>
+                        <select id="pPaciente" disabled class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-300 focus:outline-none"></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Validade da Receita (dias) *</label>
+                        <input type="number" id="pValidade" min="1" value="30" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Observações Médicas</label>
+                    <textarea id="pObs" rows="2" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500"></textarea>
+                </div>
+                <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider pt-2 border-t border-slate-700/50">Itens da Prescrição *</div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead class="text-slate-400 uppercase"><tr>
+                            <th class="p-2">Medicamento</th>
+                            <th class="p-2">Posologia / Instrução</th>
+                            <th class="p-2">Quantidade</th>
+                            <th class="p-2"></th>
+                        </tr></thead>
+                        <tbody id="itensPrescricao" class="divide-y divide-slate-700/60"></tbody>
+                    </table>
+                </div>
+                <button type="button" onclick="adicionarItemPrescricao()" class="w-full border border-dashed border-slate-600 hover:border-blue-500 text-slate-300 hover:text-blue-400 py-2.5 rounded-xl text-sm transition">
+                    <i class="fa-solid fa-plus"></i> Adicionar medicamento
+                </button>
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="fecharModalPrescricao()" class="w-1/2 bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium py-2.5 rounded-xl transition">Cancelar</button>
+                    <button type="submit" class="w-1/2 bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 rounded-xl transition">Gravar Prescrição</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div id="modalDetalhePrescricao" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50 overflow-y-auto">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-3xl my-8 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="tituloDetalhePrescricao" class="font-bold text-xl text-blue-400">Prescrição</h3>
+                <button onclick="fecharDetalhePrescricao()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-2xl"></i></button>
+            </div>
+            <div id="detalhePrescricaoCorpo" class="space-y-4"></div>
+            <div class="pt-4">
+                <button onclick="fecharDetalhePrescricao()" class="w-full bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium py-2.5 rounded-xl transition">Fechar</button>
+            </div>
+        </div>
+    </div>
     <script>
         const API_URL = '/api/pacientes';
         const API_MEDICAMENTOS_URL = '/api/medicamentos';
@@ -795,9 +884,11 @@
             document.getElementById('secao-fila').classList.toggle('hidden', nome !== 'fila');
             document.getElementById('secao-triagens').classList.toggle('hidden', nome !== 'triagens');
             document.getElementById('secao-consultas').classList.toggle('hidden', nome !== 'consultas');
+            document.getElementById('secao-prescricoes').classList.toggle('hidden', nome !== 'prescricoes');
             if (nome === 'fila') { carregarFila(); }
             if (nome === 'triagens') { carregarTriagens(); }
             if (nome === 'consultas') { carregarConsultas(); }
+            if (nome === 'prescricoes') { carregarPrescricoes(); }
 
             const ativo = 'bg-blue-600/20 text-blue-400 font-medium';
             const inativo = 'hover:bg-slate-700/50 text-slate-400 hover:text-slate-200';
@@ -811,6 +902,7 @@
             document.getElementById('navFila').className = 'w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ' + (nome === 'fila' ? ativo : inativo);
             document.getElementById('navTriagens').className = 'w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ' + (nome === 'triagens' ? ativo : inativo);
             document.getElementById('navConsultas').className = 'w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ' + (nome === 'consultas' ? ativo : inativo);
+            document.getElementById('navPrescricoes').className = 'w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ' + (nome === 'prescricoes' ? ativo : inativo);
 
             if (nome === 'medicamentos' && !medicamentosCarregados) {
                 carregarMedicamentos();
@@ -1821,13 +1913,14 @@
                            <button onclick="mudarEstadoConsulta(${c.id}, 'CONCLUIDO')" class="px-3 py-1.5 bg-emerald-600/20 text-emerald-400 rounded-lg text-xs font-semibold">Concluir</button>
                            <button onclick="mudarEstadoConsulta(${c.id}, 'CANCELADO')" class="px-3 py-1.5 bg-rose-600/20 text-rose-400 rounded-lg text-xs font-semibold">Cancelar</button>`
                         : `<button onclick="editarConsulta(${c.id})" class="px-3 py-1.5 bg-blue-600/20 text-blue-400 rounded-lg text-xs font-semibold">Editar</button>`;
+                    const prescrever = `<button onclick="prescreverConsulta(${c.id})" class="px-3 py-1.5 bg-violet-600/20 text-violet-400 rounded-lg text-xs font-semibold">Prescrever</button>`;
                     return `<tr>
                         <td class="p-4">${c.paciente || '-'}</td>
                         <td class="p-4">${c.medico || '-'}</td>
                         <td class="p-4">${c.dataInicio || '-'}</td>
                         <td class="p-4">${c.dataFim || '-'}</td>
                         <td class="p-4"><span class="px-2 py-1 rounded-lg text-xs font-semibold ${badge}">${c.estado || '-'}</span></td>
-                        <td class="p-4">${botoes}</td>
+                        <td class="p-4">${botoes} ${prescrever}</td>
                     </tr>`;
                 }).join('');
             } catch (e) {
@@ -1975,6 +2068,262 @@
                 return;
             }
             carregarConsultas();
+        }
+
+        let listaPrescricoes = [];
+        let consultasParaPrescricao = [];
+        const ESTADO_PRESCRICAO_BADGE = {
+            PENDENTE: 'bg-sky-600/20 text-sky-400',
+            PARCIALMENTE_DISPENSADA: 'bg-amber-600/20 text-amber-400',
+            TOTALMENTE_DISPENSADA: 'bg-emerald-600/20 text-emerald-400',
+            CANCELADA: 'bg-rose-600/20 text-rose-400',
+            EXPIRADA: 'bg-orange-600/20 text-orange-400'
+        };
+
+        async function carregarPrescricoes() {
+            const tbody = document.getElementById('tabela-prescricoes');
+            try {
+                const res = await fetch('/api/prescricoes');
+                if (!res.ok) throw new Error('Erro ' + res.status);
+                listaPrescricoes = await res.json();
+                if (listaPrescricoes.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="8" class="p-6 text-center text-slate-500">Não há prescrições registadas.</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = listaPrescricoes.map(p => {
+                    const badge = ESTADO_PRESCRICAO_BADGE[p.estado] || 'bg-slate-600/30 text-slate-300';
+                    const botoes = p.estado === 'PENDENTE'
+                        ? `<button onclick="editarPrescricao(${p.id})" class="px-3 py-1.5 bg-blue-600/20 text-blue-400 rounded-lg text-xs font-semibold">Editar</button>
+                           <button onclick="cancelarPrescricao(${p.id})" class="px-3 py-1.5 bg-rose-600/20 text-rose-400 rounded-lg text-xs font-semibold">Cancelar</button>`
+                        : '';
+                    return `<tr>
+                        <td class="p-4">${p.paciente || '-'}</td>
+                        <td class="p-4">${p.medico || '-'}</td>
+                        <td class="p-4">#${p.consultaId}</td>
+                        <td class="p-4">${p.dataPrescricao || '-'}</td>
+                        <td class="p-4">${p.validadeReceitaDias} dias</td>
+                        <td class="p-4">${p.totalItens ?? 0}</td>
+                        <td class="p-4"><span class="px-2 py-1 rounded-lg text-xs font-semibold ${badge}">${p.estado || '-'}</span></td>
+                        <td class="p-4 space-x-1"><button onclick="verPrescricao(${p.id})" class="px-3 py-1.5 bg-slate-600/30 text-slate-300 rounded-lg text-xs font-semibold">Ver</button> ${botoes}</td>
+                    </tr>`;
+                }).join('');
+            } catch (e) {
+                tbody.innerHTML = '<tr><td colspan="8" class="p-6 text-center text-rose-400">Erro: ' + e.message + '</td></tr>';
+            }
+        }
+
+        async function carregarDadosPrescricao() {
+            const [resC, resU, resP] = await Promise.all([
+                fetch('/api/consultas?todas=true'), fetch('/api/utilizadores'), fetch('/api/pacientes')
+            ]);
+            if (!resC.ok || !resU.ok || !resP.ok) throw new Error('Erro ao carregar dados da prescrição');
+            consultasParaPrescricao = await resC.json();
+            const utilizadores = await resU.json();
+            const pacientes = await resP.json();
+            document.getElementById('pConsulta').innerHTML = consultasParaPrescricao.length
+                ? '<option value="">Selecione a consulta</option>' + consultasParaPrescricao.map(c =>
+                    `<option value="${c.id}" data-paciente="${c.pacienteId}" data-medico="${c.medicoId}">#${c.id} - ${c.paciente || 'Paciente #' + c.pacienteId} (${c.dataInicio || '-'})</option>`).join('')
+                : '<option value="">Nenhuma consulta registada</option>';
+            document.getElementById('pMedico').innerHTML = utilizadores.map(u => `<option value="${u.id}">${u.nomeCompleto}</option>`).join('');
+            document.getElementById('pPaciente').innerHTML = pacientes.map(p => `<option value="${p.id}">${p.nomeCompleto || p.nome || ('Paciente #' + p.id)}</option>`).join('');
+            if (!medicamentosCarregados) await carregarMedicamentos();
+        }
+
+        function aoEscolherConsultaPrescricao() {
+            const opt = document.getElementById('pConsulta').selectedOptions[0];
+            if (!opt || !opt.value) return;
+            if (opt.dataset.paciente) document.getElementById('pPaciente').value = opt.dataset.paciente;
+            if (opt.dataset.medico) document.getElementById('pMedico').value = opt.dataset.medico;
+        }
+
+        function adicionarItemPrescricao(medicamentoId, posologia, quantidade) {
+            const tbody = document.getElementById('itensPrescricao');
+            const opcoes = listaMedicamentosMemoria.map(m => {
+                const id = m.id || m.Id;
+                const nome = m.nomeGenerico || m.NomeGenerico || ('#' + id);
+                const com = (m.nomeComercial || m.NomeComercial) ? ' - ' + (m.nomeComercial || m.NomeComercial) : '';
+                return `<option value="${id}">${nome}${com}</option>`;
+            }).join('');
+            const tr = document.createElement('tr');
+            tr.className = 'border-b border-slate-700/50 align-top';
+            tr.innerHTML = `
+                <td class="p-2"><select class="pItemMed w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-2 text-xs text-slate-100 focus:outline-none focus:border-blue-500"><option value="">Selecione</option>${opcoes}</select></td>
+                <td class="p-2"><textarea class="pItemPos w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-2 text-xs text-slate-100 focus:outline-none focus:border-blue-500" rows="2"></textarea></td>
+                <td class="p-2"><input type="number" step="0.0001" min="0" class="pItemQtd w-24 bg-slate-900 border border-slate-700 rounded-lg px-2 py-2 text-xs text-slate-100 focus:outline-none focus:border-blue-500"></td>
+                <td class="p-2 text-center"><button type="button" onclick="this.closest('tr').remove()" class="text-rose-400 hover:text-rose-300"><i class="fa-solid fa-trash"></i></button></td>`;
+            tbody.appendChild(tr);
+            if (medicamentoId) tr.querySelector('.pItemMed').value = medicamentoId;
+            if (posologia) tr.querySelector('.pItemPos').value = posologia;
+            if (quantidade != null) tr.querySelector('.pItemQtd').value = quantidade;
+        }
+
+        function limparFormPrescricao() {
+            document.getElementById('formPrescricao').reset();
+            document.getElementById('pId').value = '';
+            document.getElementById('itensPrescricao').innerHTML = '';
+            document.getElementById('pConsulta').disabled = false;
+        }
+
+        async function abrirModalPrescricao() {
+            limparFormPrescricao();
+            document.getElementById('tituloPrescricao').textContent = 'Nova Prescrição';
+            try {
+                await carregarDadosPrescricao();
+            } catch (e) {
+                alert(e.message);
+                return false;
+            }
+            adicionarItemPrescricao();
+            document.getElementById('modalPrescricao').classList.remove('hidden');
+            return true;
+        }
+
+        function fecharModalPrescricao() {
+            document.getElementById('modalPrescricao').classList.add('hidden');
+        }
+
+        async function prescreverConsulta(id) {
+            const aberto = await abrirModalPrescricao();
+            if (!aberto) return;
+            const c = listaConsultas.find(x => x.id === id);
+            if (!c) return;
+            const selC = document.getElementById('pConsulta');
+            selC.value = String(id);
+            document.getElementById('pPaciente').value = c.pacienteId;
+            document.getElementById('pMedico').value = c.medicoId;
+        }
+
+        async function editarPrescricao(id) {
+            const aberto = await abrirModalPrescricao();
+            if (!aberto) return;
+            const res = await fetch('/api/prescricoes/' + id);
+            if (!res.ok) {
+                let msg = 'Erro ao carregar prescrição';
+                try { msg = (await res.json()).erro || msg; } catch (x) {}
+                alert(msg);
+                fecharModalPrescricao();
+                return;
+            }
+            const p = await res.json();
+            document.getElementById('tituloPrescricao').textContent = 'Editar Prescrição #' + p.id;
+            document.getElementById('pId').value = p.id;
+            const selC = document.getElementById('pConsulta');
+            if (![...selC.options].some(o => o.value === String(p.consultaId))) {
+                selC.insertAdjacentHTML('beforeend', `<option value="${p.consultaId}">Consulta #${p.consultaId}</option>`);
+            }
+            selC.value = p.consultaId;
+            selC.disabled = true;
+            document.getElementById('pPaciente').value = p.pacienteId;
+            document.getElementById('pMedico').value = p.medicoId;
+            document.getElementById('pValidade').value = p.validadeReceitaDias;
+            document.getElementById('pObs').value = p.observacoesMedicas || '';
+            const tbody = document.getElementById('itensPrescricao');
+            tbody.innerHTML = '';
+            const itens = p.itens || [];
+            itens.forEach(i => adicionarItemPrescricao(i.medicamentoId, i.posologiaInstrucao, i.quantidadePrescrita));
+            if (itens.length === 0) adicionarItemPrescricao();
+        }
+
+        async function salvarPrescricao(e) {
+            e.preventDefault();
+            const id = document.getElementById('pId').value;
+            const consultaSel = document.getElementById('pConsulta').value;
+            const pacienteId = parseInt(document.getElementById('pPaciente').value);
+            const medicoId = parseInt(document.getElementById('pMedico').value);
+            const validade = parseInt(document.getElementById('pValidade').value);
+            if (!consultaSel) { alert('Selecione a consulta.'); return; }
+            if (!pacienteId) { alert('Selecione o paciente.'); return; }
+            if (!medicoId) { alert('Selecione o médico.'); return; }
+            if (!validade || validade <= 0) { alert('Informe a validade da receita em dias.'); return; }
+            const itens = [];
+            const linhas = [...document.querySelectorAll('#itensPrescricao tr')];
+            for (const tr of linhas) {
+                const med = tr.querySelector('.pItemMed').value;
+                const pos = tr.querySelector('.pItemPos').value.trim();
+                const qtd = parseFloat(tr.querySelector('.pItemQtd').value);
+                if (!med && !pos && !tr.querySelector('.pItemQtd').value.trim()) continue;
+                if (!med) { alert('Selecione o medicamento de cada item.'); return; }
+                if (!pos) { alert('Informe a posologia/instrução de cada item.'); return; }
+                if (!Number.isFinite(qtd) || qtd <= 0) { alert('Quantidade prescrita deve ser maior que zero.'); return; }
+                itens.push({ medicamentoId: parseInt(med), posologiaInstrucao: pos, quantidadePrescrita: qtd });
+            }
+            if (itens.length === 0) { alert('Adicione pelo menos um medicamento à prescrição.'); return; }
+            const dados = {
+                consultaId: parseInt(consultaSel),
+                pacienteId: pacienteId,
+                medicoId: medicoId,
+                validadeReceitaDias: validade,
+                observacoesMedicas: document.getElementById('pObs').value || null,
+                itens: itens
+            };
+            const res = await fetch(id ? '/api/prescricoes/' + id : '/api/prescricoes', {
+                method: id ? 'PUT' : 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dados)
+            });
+            if (!res.ok) {
+                let msg = id ? 'Erro ao editar prescrição' : 'Erro ao registar prescrição';
+                try { msg = (await res.json()).erro || msg; } catch (x) {}
+                alert(msg);
+                return;
+            }
+            fecharModalPrescricao();
+            carregarPrescricoes();
+        }
+
+        async function cancelarPrescricao(id) {
+            if (!confirm('Deseja cancelar esta prescrição?')) return;
+            const res = await fetch('/api/prescricoes/' + id + '/estado?estado=CANCELADA', { method: 'PUT' });
+            if (!res.ok) {
+                let msg = 'Erro ao cancelar prescrição';
+                try { msg = (await res.json()).erro || msg; } catch (x) {}
+                alert(msg);
+                return;
+            }
+            carregarPrescricoes();
+        }
+
+        async function verPrescricao(id) {
+            const res = await fetch('/api/prescricoes/' + id);
+            if (!res.ok) {
+                let msg = 'Prescrição não encontrada';
+                try { msg = (await res.json()).erro || msg; } catch (x) {}
+                alert(msg);
+                return;
+            }
+            const p = await res.json();
+            const badge = ESTADO_PRESCRICAO_BADGE[p.estado] || 'bg-slate-600/30 text-slate-300';
+            document.getElementById('tituloDetalhePrescricao').textContent = 'Prescrição #' + p.id;
+            const itens = (p.itens || []).map(i => `<tr>
+                <td class="p-3">${i.medicamento || ('Medicamento #' + i.medicamentoId)}${i.medicamentoComercial ? ' <span class="text-slate-500">(' + i.medicamentoComercial + ')</span>' : ''}</td>
+                <td class="p-3">${i.posologiaInstrucao || '-'}</td>
+                <td class="p-3">${i.quantidadePrescrita}</td>
+                <td class="p-3">${i.quantidadeDispensada}</td>
+            </tr>`).join('') || '<tr><td colspan="4" class="p-4 text-center text-slate-500">Sem itens.</td></tr>';
+            document.getElementById('detalhePrescricaoCorpo').innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                    <div><span class="block text-xs font-semibold text-slate-400">Paciente</span>${p.paciente || '-'}</div>
+                    <div><span class="block text-xs font-semibold text-slate-400">Médico</span>${p.medico || '-'}</div>
+                    <div><span class="block text-xs font-semibold text-slate-400">Consulta</span>#${p.consultaId}</div>
+                    <div><span class="block text-xs font-semibold text-slate-400">Data da Prescrição</span>${p.dataPrescricao || '-'}</div>
+                    <div><span class="block text-xs font-semibold text-slate-400">Validade da Receita</span>${p.validadeReceitaDias} dias</div>
+                    <div><span class="block text-xs font-semibold text-slate-400">Estado</span><span class="px-2 py-1 rounded-lg text-xs font-semibold ${badge}">${p.estado}</span></div>
+                </div>
+                ${p.observacoesMedicas ? `<div class="text-sm"><span class="block text-xs font-semibold text-slate-400">Observações Médicas</span>${p.observacoesMedicas}</div>` : ''}
+                <div class="overflow-x-auto bg-slate-900/50 rounded-xl">
+                    <table class="w-full text-left text-xs">
+                        <thead class="text-slate-400 uppercase"><tr>
+                            <th class="p-3">Medicamento</th><th class="p-3">Posologia / Instrução</th>
+                            <th class="p-3">Qtd. Prescrita</th><th class="p-3">Qtd. Dispensada</th>
+                        </tr></thead>
+                        <tbody class="divide-y divide-slate-700/60">${itens}</tbody>
+                    </table>
+                </div>`;
+            document.getElementById('modalDetalhePrescricao').classList.remove('hidden');
+        }
+
+        function fecharDetalhePrescricao() {
+            document.getElementById('modalDetalhePrescricao').classList.add('hidden');
         }
     </script>
 </body>
